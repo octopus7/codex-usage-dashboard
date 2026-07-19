@@ -72,6 +72,22 @@ jobs:
       - name: Check source
         run: npm run check
 
+      - name: Generate deployment information
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          DEPLOYED_AT="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+          SHORT_SHA="${GITHUB_SHA::7}"
+
+          cat > public/deploy-info.json <<EOF
+          {
+            "deployedAt": "${DEPLOYED_AT}",
+            "commitSha": "${SHORT_SHA}",
+            "runNumber": "${GITHUB_RUN_NUMBER}"
+          }
+          EOF
+
       - name: Apply D1 migrations
         run: npm run db:migrate:remote
 
