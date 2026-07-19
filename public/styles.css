@@ -416,7 +416,7 @@ h2 {
 .scale-selector {
   display: grid;
   grid-template-columns: repeat(8, minmax(58px, 72px));
-  justify-content: start;
+  justify-content: center;
   gap: 5px;
   overflow-x: auto;
   scrollbar-width: thin;
