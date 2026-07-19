@@ -23,6 +23,7 @@ jobs:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
       D1_DATABASE_ID: ${{ vars.D1_DATABASE_ID }}
+      USAGEFROMPI_ENABLED: ${{ vars.USAGEFROMPI_ENABLED }}
 
     steps:
       - name: Checkout
@@ -57,13 +58,22 @@ jobs:
             exit 1
           }
 
+          case "${USAGEFROMPI_ENABLED:-}" in
+            ""|false|true|0|1|no|yes|off|on) ;;
+            *)
+              echo "USAGEFROMPI_ENABLED must be true/false (or an equivalent boolean value)"
+              exit 1
+              ;;
+          esac
+
       - name: Generate Wrangler configuration
         shell: bash
         run: |
           set -euo pipefail
 
           sed \
-            "s/__D1_DATABASE_ID__/${D1_DATABASE_ID}/g" \
+            -e "s/__D1_DATABASE_ID__/${D1_DATABASE_ID}/g" \
+            -e "s/__USAGEFROMPI_ENABLED__/${USAGEFROMPI_ENABLED:-false}/g" \
             wrangler.example.jsonc \
             > wrangler.jsonc
 

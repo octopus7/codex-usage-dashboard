@@ -142,6 +142,11 @@ async function routeApi(request, env, url) {
     return insertUsage(request, env, false);
   }
 
+  if (request.method === "POST" && url.pathname === "/api/usagefrompi") {
+    if (!isUsageFromPiEnabled(env)) return usageFromPiDisabled();
+    return insertUsage(request, env, false);
+  }
+
   if (request.method === "POST" && url.pathname === "/api/usage/manual") {
     if (!isSameOriginRequest(request)) return forbiddenOrigin();
     const session = await requireAdminSession(request, env);
@@ -1105,6 +1110,19 @@ function ingestUnauthorized() {
     { ok: false, error: "unauthorized", message: "올바른 INGEST_TOKEN Bearer 토큰이 필요합니다." },
     401,
     { "WWW-Authenticate": "Bearer" }
+  );
+}
+
+function isUsageFromPiEnabled(env) {
+  return ["1", "true", "yes", "on"].includes(
+    String(env.USAGEFROMPI_ENABLED || "").trim().toLowerCase()
+  );
+}
+
+function usageFromPiDisabled() {
+  return jsonResponse(
+    { ok: false, error: "not_found", message: "요청한 API 경로를 찾을 수 없습니다." },
+    404
   );
 }
 

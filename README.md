@@ -204,6 +204,18 @@ npx wrangler secret put INGEST_TOKEN
 
 같은 클라이언트에서 15분 안에 비밀번호를 5회 틀리면 15분 동안 로그인이 잠깁니다. 성공적으로 로그인하면 실패 기록은 삭제됩니다.
 
+## Raspberry Pi 무인 수집 엔드포인트
+
+`POST /api/usagefrompi`는 `POST /api/usage`와 같은 데이터 형식과 저장 로직을 사용하지만
+인증 없이 데이터를 받습니다. 기본값은 비활성화이며, GitHub Actions의 production environment
+variable `USAGEFROMPI_ENABLED`를 `true`로 설정한 배포에서만 활성화됩니다. 비활성화 상태에서는
+`404`를 반환합니다.
+
+```http
+POST /api/usagefrompi
+Content-Type: application/json
+```
+
 ## 외부에서 독립 전송
 
 환경변수:

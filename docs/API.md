@@ -168,6 +168,18 @@ Content-Type: application/json
 npx wrangler secret put INGEST_TOKEN
 ```
 
+## Raspberry Pi 수집 엔드포인트
+
+`POST /api/usagefrompi`는 `POST /api/usage`와 동일한 입력 형식과 저장 처리를 사용하지만,
+수집 토큰 인증 없이 동작하는 별도 엔드포인트입니다. 기본값은 비활성화이며,
+GitHub Actions production environment variable `USAGEFROMPI_ENABLED`를 `true`로 설정한
+배포에서만 활성화됩니다. 비활성화된 상태에서는 `404`를 반환합니다.
+
+```http
+POST /api/usagefrompi
+Content-Type: application/json
+```
+
 ## 단건 데이터 전송
 
 ```http
