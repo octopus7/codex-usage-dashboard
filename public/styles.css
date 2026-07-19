@@ -534,8 +534,8 @@ select {
 
 .chart-line-5h {
   stroke: var(--series-5h);
-  stroke-width: 2px;
-  opacity: 0.78;
+  stroke-width: 1px;
+  opacity: 0.5;
   filter: none;
 }
 
@@ -551,7 +551,7 @@ select {
 
 .chart-event-dot-5h {
   fill: var(--series-5h);
-  stroke-width: 2px;
+  stroke-width: 1px;
 }
 
 .chart-event-dot-week {
@@ -571,7 +571,7 @@ select {
 
 .chart-hover-dot-5h {
   fill: var(--series-5h);
-  stroke-width: 2px;
+  stroke-width: 1px;
 }
 
 .chart-hover-dot-week {

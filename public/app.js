@@ -904,7 +904,7 @@ function renderChart() {
 
     if (showEventDots) {
       for (const point of points.filter((candidate) => !candidate.synthetic)) {
-        const dotRadius = usageType === "5h" ? 2.5 : 3.5;
+        const dotRadius = usageType === "5h" ? 1.5 : 3.5;
         seriesMarkup.push(
           `<circle class="chart-event-dot chart-event-dot-${suffix}" cx="${point.x}" cy="${point.y}" r="${dotRadius}"></circle>`
         );
@@ -1036,7 +1036,7 @@ function updateChartTooltip(event) {
   hoverDots.innerHTML = active
     .map((point) => {
       const suffix = SERIES_META[point.usageType].cssSuffix;
-      const dotRadius = point.usageType === "5h" ? 4 : 5;
+      const dotRadius = point.usageType === "5h" ? 2 : 5;
       return `<circle class="chart-hover-dot chart-hover-dot-${suffix}" cx="${svgX}" cy="${point.y}" r="${dotRadius}"></circle>`;
     })
     .join("");
