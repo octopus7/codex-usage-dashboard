@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b1020">
+  <title>Codex 5h · Week 사용량</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Cloudflare Worker + D1</p>
+        <h1>Codex 사용량</h1>
+        <p class="title-description">5시간·주간 사용량을 독립 수집하고 하나의 시간축에서 비교합니다.</p>
+      </div>
+      <div class="header-actions">
+        <span id="connection-status" class="status-pill status-loading">연결 확인 중</span>
+        <button id="admin-login-button" class="button button-ghost" type="button">관리자 로그인</button>
+        <button id="admin-logout-button" class="button button-ghost" type="button" hidden>로그아웃</button>
+        <button id="add-button" class="button button-primary" type="button" hidden>사용량 추가</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="range-panel" aria-label="조회 범위">
+        <div id="scale-selector" class="scale-selector" role="group" aria-label="시간 범위">
+          <button type="button" data-scale="1h">1시간</button>
+          <button type="button" data-scale="6h">6시간</button>
+          <button type="button" data-scale="12h">12시간</button>
+          <button type="button" data-scale="1d">1일</button>
+          <button type="button" data-scale="2d">2일</button>
+          <button type="button" data-scale="1w">1주</button>
+          <button type="button" data-scale="2w">2주</button>
+          <button type="button" data-scale="4w">4주</button>
+        </div>
+
+        <div class="range-navigation">
+          <button id="previous-button" class="icon-button" type="button" aria-label="이전 기간">←</button>
+          <div class="range-title-wrap">
+            <strong id="range-title">-</strong>
+            <span id="range-subtitle">왼쪽으로 스와이프하면 이전 기간</span>
+          </div>
+          <button id="next-button" class="icon-button" type="button" aria-label="다음 기간">→</button>
+        </div>
+      </section>
+
+      <section class="summary-grid" aria-label="사용량 요약">
+        <article class="summary-card summary-card-5h">
+          <span class="summary-label"><i class="series-dot series-dot-5h"></i>5시간 현재</span>
+          <strong id="summary-5h-value">-</strong>
+          <small id="summary-5h-detail">데이터 없음</small>
+        </article>
+        <article class="summary-card summary-card-week">
+          <span class="summary-label"><i class="series-dot series-dot-week"></i>주간 현재</span>
+          <strong id="summary-week-value">-</strong>
+          <small id="summary-week-detail">데이터 없음</small>
+        </article>
+        <article class="summary-card">
+          <span>5시간 구간 변화</span>
+          <strong id="change-5h-value">-</strong>
+          <small id="change-5h-detail">원본 0건</small>
+        </article>
+        <article class="summary-card">
+          <span>주간 구간 변화</span>
+          <strong id="change-week-value">-</strong>
+          <small id="change-week-detail">원본 0건</small>
+        </article>
+      </section>
+
+      <section id="chart-card" class="panel chart-panel">
+        <div class="panel-heading chart-heading">
+          <div>
+            <h2>5시간 · 주간 사용량 추이</h2>
+            <p>데이터 지점은 직선으로 연결하고, 값이 감소하면 리셋으로 판단해 해당 구간의 선을 끊습니다.</p>
+          </div>
+          <div class="chart-controls">
+            <div id="series-legend" class="series-legend" role="group" aria-label="표시 시리즈">
+              <button class="legend-button active" type="button" data-series-toggle="5h" aria-pressed="true">
+                <i class="series-dot series-dot-5h"></i>5시간
+              </button>
+              <button class="legend-button active" type="button" data-series-toggle="week" aria-pressed="true">
+                <i class="series-dot series-dot-week"></i>주간
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        <div id="chart-wrap" class="chart-wrap">
+          <svg id="usage-chart" viewBox="0 0 900 340" role="img" aria-label="5시간 및 주간 Codex 사용량 직선 시계열 차트"></svg>
+          <div id="chart-tooltip" class="chart-tooltip" hidden></div>
+          <div id="chart-empty" class="chart-empty" hidden>이 기간에는 표시할 데이터가 없습니다.</div>
+        </div>
+      </section>
+
+      <section class="panel table-panel">
+        <div class="panel-heading">
+          <div>
+            <h2>독립 측정 기록</h2>
+            <p id="table-description">5시간과 주간 데이터는 서로 다른 행으로 저장됩니다.</p>
+          </div>
+          <button id="refresh-button" class="button button-ghost" type="button">새로고침</button>
+        </div>
+
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>종류</th>
+                <th>측정 시각</th>
+                <th>사용률</th>
+                <th>출처</th>
+                <th>메모</th>
+                <th id="admin-action-header" hidden>관리</th>
+              </tr>
+            </thead>
+            <tbody id="usage-table-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="admin-setup-dialog">
+    <form id="admin-setup-form" class="dialog-form">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">최초 1회 설정</p>
+          <h2>관리자 비밀번호 만들기</h2>
+        </div>
+        <button class="dialog-close" type="button" data-close-dialog aria-label="닫기">×</button>
+      </div>
+      <p class="dialog-help">
+        아직 관리자 비밀번호가 없습니다. 지금 저장한 비밀번호는 이후 수동 추가와 삭제에 사용됩니다.
+        비밀번호 원문은 저장되지 않으며 D1에는 salt가 적용된 해시만 보관됩니다.
+      </p>
+      <div class="security-notice">
+        새 배포에서는 먼저 이 화면을 연 사람이 비밀번호를 설정할 수 있으므로 배포 직후 바로 설정하세요.
+      </div>
+      <label>
+        새 비밀번호
+        <input id="setup-password" type="password" minlength="10" maxlength="128" autocomplete="new-password" required placeholder="10자 이상">
+      </label>
+      <label>
+        새 비밀번호 확인
+        <input id="setup-password-confirm" type="password" minlength="10" maxlength="128" autocomplete="new-password" required placeholder="같은 비밀번호 다시 입력">
+      </label>
+      <div class="dialog-actions">
+        <button class="button button-ghost" type="button" data-close-dialog>나중에</button>
+        <button id="setup-submit-button" class="button button-primary" type="submit">비밀번호 저장</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="admin-login-dialog">
+    <form id="admin-login-form" class="dialog-form">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">관리 기능</p>
+          <h2>관리자 로그인</h2>
+        </div>
+        <button class="dialog-close" type="button" data-close-dialog aria-label="닫기">×</button>
+      </div>
+      <p class="dialog-help">
+        로그인한 브라우저에만 HttpOnly 세션 쿠키가 발급됩니다. 로그인 후 사용량 추가와 삭제 버튼이 표시됩니다.
+      </p>
+      <label>
+        비밀번호
+        <input id="login-password" type="password" maxlength="128" autocomplete="current-password" required autofocus>
+      </label>
+      <div class="dialog-actions">
+        <button class="button button-ghost" type="button" data-close-dialog>취소</button>
+        <button id="login-submit-button" class="button button-primary" type="submit">로그인</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="add-dialog">
+    <form id="add-form" class="dialog-form">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">독립 시계열 수동 입력</p>
+          <h2>사용량 추가</h2>
+        </div>
+        <button class="dialog-close" type="button" data-close-dialog aria-label="닫기">×</button>
+      </div>
+
+      <div class="form-grid">
+        <label>
+          사용량 종류
+          <select name="usageType" required>
+            <option value="5h">5시간</option>
+            <option value="week">주간</option>
+          </select>
+        </label>
+        <label>
+          측정 시각
+          <input id="field-recorded-at" name="recordedAt" type="datetime-local" required>
+        </label>
+        <label>
+          사용률(%)
+          <input name="usedPercent" type="number" min="0" step="0.01" required value="0" placeholder="예: 42.5">
+        </label>
+        <label>
+          출처
+          <input name="source" type="text" maxlength="64" value="manual">
+        </label>
+        <label class="form-span-2">
+          메모
+          <textarea name="note" maxlength="1000" rows="3" placeholder="선택"></textarea>
+        </label>
+      </div>
+
+      <div class="dialog-actions">
+        <button class="button button-ghost" type="button" data-close-dialog>취소</button>
+        <button id="add-submit-button" class="button button-primary" type="submit">저장</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

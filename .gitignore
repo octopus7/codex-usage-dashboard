@@ -1,0 +1,14 @@
+node_modules/
+.wrangler/
+.wrangler-test/
+wrangler.test.jsonc
+.dev.vars
+.dev.vars.*
+.env
+.env.*
+__pycache__/
+*.py[cod]
+.DS_Store
+
+# 머신/계정별 D1 database_id를 보존하기 위한 로컬 설정
+wrangler.jsonc

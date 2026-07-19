@@ -1,0 +1,21 @@
+{
+  "name": "codex-usage-dashboard",
+  "version": "4.0.0",
+  "private": true,
+  "description": "Cloudflare Worker + D1 기반 Codex 5h/week 퍼센트 전용 대시보드",
+  "type": "module",
+  "scripts": {
+    "setup:db": "wrangler d1 create codex-usage-db --binding DB --update-config --location apac",
+    "db:migrate:local": "wrangler d1 migrations apply DB --local",
+    "db:migrate:remote": "wrangler d1 migrations apply DB --remote",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "check": "node --check src/worker.js && node --check public/app.js"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
