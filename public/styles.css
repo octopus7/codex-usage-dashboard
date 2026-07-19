@@ -470,9 +470,7 @@ h2 {
 }
 
 .range-title-wrap span {
-  margin-top: 1px;
-  color: var(--muted);
-  font-size: 0.68rem;
+  display: none;
 }
 
 .summary-grid {
