@@ -21,14 +21,24 @@
 }
 
 :root[data-theme="ocean"] {
-  --bg: #06131c;
-  --panel: rgba(10, 31, 45, 0.9);
-  --panel-strong: #0c2638;
-  --border: rgba(119, 201, 224, 0.2);
-  --border-strong: rgba(78, 190, 226, 0.44);
-  --accent: #66d4ef;
-  --accent-strong: #2ca8d3;
-  --accent-soft: rgba(44, 168, 211, 0.2);
+  color-scheme: light;
+  --bg: #f2f0e9;
+  --panel: rgba(255, 252, 246, 0.86);
+  --panel-strong: #fffaf1;
+  --border: rgba(89, 137, 151, 0.23);
+  --border-strong: rgba(26, 143, 190, 0.48);
+  --text: #304650;
+  --muted: #78909a;
+  --accent: #1599ce;
+  --accent-strong: #0879ad;
+  --accent-soft: rgba(21, 153, 206, 0.16);
+  --series-5h: #6e8fca;
+  --series-week: #35b8a5;
+  --danger: #c86e78;
+  --success: #52a58e;
+  --warning: #c39455;
+  --shadow: 0 22px 70px rgba(66, 117, 132, 0.15);
+  --radius: 22px;
 }
 
 :root[data-theme="forest"] {
@@ -140,6 +150,13 @@ main {
     radial-gradient(circle at 10% -10%, rgba(255, 205, 211, 0.42), transparent 35%),
     radial-gradient(circle at 92% 8%, rgba(194, 221, 177, 0.48), transparent 32%),
     linear-gradient(145deg, #fffaf2 0%, var(--bg) 54%, #e8eee0 100%);
+}
+
+:root[data-theme="ocean"] body {
+  background:
+    radial-gradient(circle at 10% -10%, rgba(255, 204, 214, 0.42), transparent 34%),
+    radial-gradient(circle at 92% 6%, rgba(133, 218, 235, 0.46), transparent 31%),
+    linear-gradient(145deg, #fffaf2 0%, var(--bg) 54%, #e1f0ed 100%);
 }
 
 button,
@@ -323,6 +340,43 @@ h2 {
   color: #fbfff8;
   background: linear-gradient(135deg, #8eb989, #5d956c);
   box-shadow: 0 12px 30px rgba(92, 145, 103, 0.22);
+}
+
+:root[data-theme="ocean"] .button-primary {
+  color: #f8feff;
+  background: linear-gradient(135deg, #28b9e9, #087fba);
+  box-shadow: 0 12px 30px rgba(18, 139, 190, 0.24);
+}
+
+:root[data-theme="ocean"] .button-ghost,
+:root[data-theme="ocean"] .language-selector select,
+:root[data-theme="ocean"] .theme-selector select {
+  background: rgba(255, 255, 255, 0.62);
+}
+
+:root[data-theme="ocean"] .chart-grid {
+  stroke: rgba(89, 137, 151, 0.18);
+}
+
+:root[data-theme="ocean"] .chart-axis-label {
+  fill: #78909a;
+}
+
+:root[data-theme="ocean"] .chart-event-dot,
+:root[data-theme="ocean"] .chart-hover-dot {
+  stroke: #fffaf2;
+}
+
+:root[data-theme="ocean"] .chart-hover-line {
+  stroke: rgba(49, 116, 136, 0.34);
+}
+
+:root[data-theme="ocean"] dialog {
+  background: #fffaf1;
+}
+
+:root[data-theme="ocean"] dialog::backdrop {
+  background: rgba(53, 95, 105, 0.24);
 }
 
 :root[data-theme="forest"] .button-ghost,
