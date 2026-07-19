@@ -1,5 +1,7 @@
 const LANGUAGE_STORAGE_KEY = "codex-dashboard-language";
+const THEME_STORAGE_KEY = "codex-dashboard-theme";
 const SUPPORTED_LANGUAGES = ["en", "ko", "ja"];
+const SUPPORTED_THEMES = ["midnight", "ocean", "forest", "rose", "amber"];
 const LANGUAGE_LOCALES = { en: "en-US", ko: "ko-KR", ja: "ja-JP" };
 const TRANSLATIONS = {
   en: {
@@ -34,6 +36,12 @@ function detectLanguage() {
 }
 
 let currentLanguage = detectLanguage();
+let currentTheme = detectTheme();
+
+function detectTheme() {
+  const saved = localStorage.getItem(THEME_STORAGE_KEY);
+  return SUPPORTED_THEMES.includes(saved) ? saved : "midnight";
+}
 
 function t(key, replacements = {}) {
   let value = TRANSLATIONS[currentLanguage]?.[key] || TRANSLATIONS.en[key] || key;
@@ -103,6 +111,7 @@ const state = {
 
 const elements = {
   languageSelect: document.querySelector("#language-select"),
+  themeSelect: document.querySelector("#theme-select"),
   connectionStatus: document.querySelector("#connection-status"),
   scaleSelector: document.querySelector("#scale-selector"),
   previousButton: document.querySelector("#previous-button"),
@@ -154,6 +163,11 @@ const elements = {
 
 let toastTimer;
 let swipeStart = null;
+
+function applyTheme() {
+  document.documentElement.dataset.theme = currentTheme;
+  elements.themeSelect.value = currentTheme;
+}
 
 function applyLanguage() {
   const setText = (selector, value) => {
@@ -249,6 +263,7 @@ function applyLanguage() {
 initialize();
 
 async function initialize() {
+  applyTheme();
   applyLanguage();
   bindEvents();
   updateScaleButtons();
@@ -311,6 +326,12 @@ function bindEvents() {
     renderSummary();
     renderChart();
     renderTable();
+  });
+
+  elements.themeSelect.addEventListener("change", () => {
+    currentTheme = elements.themeSelect.value;
+    localStorage.setItem(THEME_STORAGE_KEY, currentTheme);
+    applyTheme();
   });
 
   elements.scaleSelector.addEventListener("click", (event) => {

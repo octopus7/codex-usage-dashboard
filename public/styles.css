@@ -20,6 +20,50 @@
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
+:root[data-theme="ocean"] {
+  --bg: #06131c;
+  --panel: rgba(10, 31, 45, 0.9);
+  --panel-strong: #0c2638;
+  --border: rgba(119, 201, 224, 0.2);
+  --border-strong: rgba(78, 190, 226, 0.44);
+  --accent: #66d4ef;
+  --accent-strong: #2ca8d3;
+  --accent-soft: rgba(44, 168, 211, 0.2);
+}
+
+:root[data-theme="forest"] {
+  --bg: #08130f;
+  --panel: rgba(16, 36, 29, 0.9);
+  --panel-strong: #142d24;
+  --border: rgba(138, 202, 166, 0.2);
+  --border-strong: rgba(87, 190, 132, 0.44);
+  --accent: #8ee0ae;
+  --accent-strong: #4bbd7b;
+  --accent-soft: rgba(75, 189, 123, 0.2);
+}
+
+:root[data-theme="rose"] {
+  --bg: #170b15;
+  --panel: rgba(43, 20, 38, 0.9);
+  --panel-strong: #35172d;
+  --border: rgba(231, 157, 201, 0.2);
+  --border-strong: rgba(225, 111, 179, 0.44);
+  --accent: #f0a6d2;
+  --accent-strong: #dc6caf;
+  --accent-soft: rgba(220, 108, 175, 0.2);
+}
+
+:root[data-theme="amber"] {
+  --bg: #171108;
+  --panel: rgba(43, 31, 16, 0.9);
+  --panel-strong: #362612;
+  --border: rgba(231, 191, 112, 0.2);
+  --border-strong: rgba(226, 158, 52, 0.46);
+  --accent: #ffd27c;
+  --accent-strong: #e7a62f;
+  --accent-soft: rgba(231, 166, 47, 0.2);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -122,7 +166,8 @@ h2 {
   gap: 10px;
 }
 
-.language-selector select {
+.language-selector select,
+.theme-selector select {
   min-height: 42px;
   padding: 0 30px 0 12px;
   border: 1px solid var(--border);
@@ -134,7 +179,8 @@ h2 {
   font-weight: 700;
 }
 
-.language-selector select:focus-visible {
+.language-selector select:focus-visible,
+.theme-selector select:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
