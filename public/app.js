@@ -95,7 +95,8 @@ const elements = {
   addForm: document.querySelector("#add-form"),
   addSubmitButton: document.querySelector("#add-submit-button"),
   fieldRecordedAt: document.querySelector("#field-recorded-at"),
-  toast: document.querySelector("#toast")
+  toast: document.querySelector("#toast"),
+  deployInfo: document.querySelector("#deploy-info")
 };
 
 let toastTimer;
@@ -108,6 +109,7 @@ async function initialize() {
   updateScaleButtons();
   updateLegendButtons();
   updateAdminUi();
+  loadDeployInfo();
 
   await Promise.allSettled([
     refreshAdminStatus({ autoPrompt: true, quiet: true }),
@@ -122,6 +124,36 @@ async function initialize() {
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden) refreshAdminStatus({ quiet: true });
   });
+}
+
+async function loadDeployInfo() {
+  if (!elements.deployInfo) return;
+
+  try {
+    const response = await fetch("/deploy-info.json", { cache: "no-store" });
+    if (!response.ok) throw new Error("Deployment information unavailable");
+
+    const info = await response.json();
+    const deployedAt = new Date(info.deployedAt);
+    if (Number.isNaN(deployedAt.getTime())) throw new Error("Invalid deployment date");
+
+    const pad = (value) => String(value).padStart(2, "0");
+    const localDate = [
+      deployedAt.getFullYear(),
+      pad(deployedAt.getMonth() + 1),
+      pad(deployedAt.getDate())
+    ].join(". ");
+    const localTime = [
+      pad(deployedAt.getHours()),
+      pad(deployedAt.getMinutes()),
+      pad(deployedAt.getSeconds())
+    ].join(":");
+
+    elements.deployInfo.textContent =
+      `Deployed: ${localDate}. ${localTime} · Commit: ${info.commitSha} · Run: #${info.runNumber}`;
+  } catch {
+    elements.deployInfo.textContent = "Deployment information unavailable";
+  }
 }
 
 function bindEvents() {

@@ -60,6 +60,16 @@ button {
   padding: 28px clamp(16px, 3vw, 42px) 60px;
 }
 
+.deploy-info {
+  margin-top: 28px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(154, 174, 218, 0.08);
+  color: rgba(153, 167, 195, 0.38);
+  font-size: 0.68rem;
+  letter-spacing: 0.02em;
+  text-align: right;
+}
+
 .topbar {
   display: flex;
   align-items: flex-start;
