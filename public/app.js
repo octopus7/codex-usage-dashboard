@@ -195,7 +195,10 @@ function setupChartInfo() {
   tooltip.hidden = true;
 
   wrapper.append(button, tooltip);
-  description.replaceWith(wrapper);
+  const title = description.previousElementSibling;
+  title.append(" ", wrapper);
+  description.remove();
+  elements.chartInfoWrap = wrapper;
   elements.chartInfoButton = button;
   elements.chartInfoTooltip = tooltip;
 
@@ -262,7 +265,9 @@ function applyLanguage() {
   setText("#summary-week-detail", t("noData"));
   setText("#change-5h-detail", `0 ${t("refreshes")}`);
   setText("#change-week-detail", `0 ${t("refreshes")}`);
-  setText(".chart-heading h2", t("chartTitle"));
+  const chartTitle = document.querySelector(".chart-heading h2");
+  const chartTitleText = chartTitle && [...chartTitle.childNodes].find((node) => node.nodeType === Node.TEXT_NODE);
+  if (chartTitleText) chartTitleText.nodeValue = `${t("chartTitle")} `;
   if (elements.chartInfoButton) elements.chartInfoButton.setAttribute("aria-label", t("chartDescription"));
   if (elements.chartInfoTooltip) elements.chartInfoTooltip.textContent = t("chartDescription");
   document.querySelector("#series-legend")?.setAttribute("aria-label", t("series"));
