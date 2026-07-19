@@ -407,13 +407,15 @@ h2 {
 }
 
 .range-panel {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 10px;
   padding: 10px 12px;
   border-radius: var(--radius);
 }
 
 .scale-selector {
+  order: 2;
   display: grid;
   grid-template-columns: repeat(8, minmax(70px, 1fr));
   gap: 5px;
@@ -440,6 +442,7 @@ h2 {
 }
 
 .range-navigation {
+  order: 1;
   display: grid;
   grid-template-columns: 36px 1fr 36px;
   align-items: center;
