@@ -32,14 +32,24 @@
 }
 
 :root[data-theme="forest"] {
-  --bg: #08130f;
-  --panel: rgba(16, 36, 29, 0.9);
-  --panel-strong: #142d24;
-  --border: rgba(138, 202, 166, 0.2);
-  --border-strong: rgba(87, 190, 132, 0.44);
-  --accent: #8ee0ae;
-  --accent-strong: #4bbd7b;
-  --accent-soft: rgba(75, 189, 123, 0.2);
+  color-scheme: light;
+  --bg: #f4eee4;
+  --panel: rgba(255, 250, 242, 0.86);
+  --panel-strong: #fffaf0;
+  --border: rgba(108, 126, 91, 0.23);
+  --border-strong: rgba(88, 132, 92, 0.46);
+  --text: #39483c;
+  --muted: #7d8b78;
+  --accent: #769b72;
+  --accent-strong: #4f805d;
+  --accent-soft: rgba(118, 155, 114, 0.18);
+  --series-5h: #9b83b6;
+  --series-week: #65a87e;
+  --danger: #bd7070;
+  --success: #5e9b75;
+  --warning: #bf9554;
+  --shadow: 0 22px 70px rgba(104, 115, 78, 0.14);
+  --radius: 22px;
 }
 
 :root[data-theme="pink-beige"] {
@@ -102,6 +112,13 @@ body {
     radial-gradient(circle at 12% -10%, rgba(255, 190, 210, 0.52), transparent 35%),
     radial-gradient(circle at 92% 8%, rgba(255, 220, 175, 0.48), transparent 30%),
     linear-gradient(145deg, #fffaf4 0%, var(--bg) 54%, #f8e5df 100%);
+}
+
+:root[data-theme="forest"] body {
+  background:
+    radial-gradient(circle at 10% -10%, rgba(255, 205, 211, 0.42), transparent 35%),
+    radial-gradient(circle at 92% 8%, rgba(194, 221, 177, 0.48), transparent 32%),
+    linear-gradient(145deg, #fffaf2 0%, var(--bg) 54%, #e8eee0 100%);
 }
 
 button,
@@ -278,6 +295,43 @@ h2 {
 
 :root[data-theme="pink-beige"] .chart-hover-line {
   stroke: rgba(132, 97, 110, 0.32);
+}
+
+:root[data-theme="forest"] .button-primary {
+  color: #fbfff8;
+  background: linear-gradient(135deg, #8eb989, #5d956c);
+  box-shadow: 0 12px 30px rgba(92, 145, 103, 0.22);
+}
+
+:root[data-theme="forest"] .button-ghost,
+:root[data-theme="forest"] .language-selector select,
+:root[data-theme="forest"] .theme-selector select {
+  background: rgba(255, 255, 255, 0.58);
+}
+
+:root[data-theme="forest"] .chart-grid {
+  stroke: rgba(108, 126, 91, 0.18);
+}
+
+:root[data-theme="forest"] .chart-axis-label {
+  fill: #7d8b78;
+}
+
+:root[data-theme="forest"] .chart-event-dot,
+:root[data-theme="forest"] .chart-hover-dot {
+  stroke: #fffaf2;
+}
+
+:root[data-theme="forest"] .chart-hover-line {
+  stroke: rgba(88, 112, 82, 0.32);
+}
+
+:root[data-theme="forest"] dialog {
+  background: #fffaf0;
+}
+
+:root[data-theme="forest"] dialog::backdrop {
+  background: rgba(67, 83, 63, 0.24);
 }
 
 :root[data-theme="pink-beige"] dialog {
