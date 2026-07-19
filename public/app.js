@@ -28,6 +28,10 @@ const TRANSLATIONS = {
 TRANSLATIONS.ko.refresh = "새로고침";
 TRANSLATIONS.ja.refresh = "更新";
 
+TRANSLATIONS.en.swipePrevious = "Use the left arrow to view the previous period";
+TRANSLATIONS.ko.swipePrevious = "왼쪽 이전 버튼으로 이전 기간을 확인할 수 있습니다";
+TRANSLATIONS.ja.swipePrevious = "左矢印ボタンで前の期間を表示できます";
+
 function detectLanguage() {
   const saved = localStorage.getItem(LANGUAGE_STORAGE_KEY);
   if (SUPPORTED_LANGUAGES.includes(saved)) return saved;
