@@ -197,6 +197,7 @@ h2 {
 }
 
 .title-description {
+  display: none;
   max-width: 680px;
   margin-bottom: 0;
   color: var(--muted);
@@ -486,6 +487,34 @@ h2 {
   padding: 20px;
   overflow: hidden;
   border-radius: 16px;
+}
+
+.summary-grid {
+  display: none;
+}
+
+.series-current-values {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  margin-top: -3px;
+  padding: 0 12px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-align: center;
+}
+
+.series-current-values strong {
+  font-size: 0.75rem;
+  font-weight: 750;
+}
+
+.series-current-values strong:first-child {
+  color: var(--series-5h);
+}
+
+.series-current-values strong:last-child {
+  color: var(--series-week);
 }
 
 .summary-card::after {
