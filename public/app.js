@@ -1,7 +1,7 @@
 const LANGUAGE_STORAGE_KEY = "codex-dashboard-language";
 const THEME_STORAGE_KEY = "codex-dashboard-theme";
 const SUPPORTED_LANGUAGES = ["en", "ko", "ja"];
-const SUPPORTED_THEMES = ["midnight", "ocean", "forest", "rose", "amber"];
+const SUPPORTED_THEMES = ["midnight", "ocean", "forest", "pink-beige", "amber"];
 const LANGUAGE_LOCALES = { en: "en-US", ko: "ko-KR", ja: "ja-JP" };
 const TRANSLATIONS = {
   en: {
@@ -40,6 +40,7 @@ let currentTheme = detectTheme();
 
 function detectTheme() {
   const saved = localStorage.getItem(THEME_STORAGE_KEY);
+  if (saved === "rose") return "pink-beige";
   return SUPPORTED_THEMES.includes(saved) ? saved : "midnight";
 }
 

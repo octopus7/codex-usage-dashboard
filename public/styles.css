@@ -42,15 +42,25 @@
   --accent-soft: rgba(75, 189, 123, 0.2);
 }
 
-:root[data-theme="rose"] {
-  --bg: #170b15;
-  --panel: rgba(43, 20, 38, 0.9);
-  --panel-strong: #35172d;
-  --border: rgba(231, 157, 201, 0.2);
-  --border-strong: rgba(225, 111, 179, 0.44);
-  --accent: #f0a6d2;
-  --accent-strong: #dc6caf;
-  --accent-soft: rgba(220, 108, 175, 0.2);
+:root[data-theme="pink-beige"] {
+  color-scheme: light;
+  --bg: #fbf1eb;
+  --panel: rgba(255, 250, 246, 0.86);
+  --panel-strong: #fff8f2;
+  --border: rgba(173, 126, 133, 0.22);
+  --border-strong: rgba(202, 119, 157, 0.46);
+  --text: #503a44;
+  --muted: #9b7f87;
+  --accent: #d987ad;
+  --accent-strong: #bd668f;
+  --accent-soft: rgba(217, 135, 173, 0.18);
+  --series-5h: #b48abb;
+  --series-week: #73b69c;
+  --danger: #c46e7c;
+  --success: #69a889;
+  --warning: #c49150;
+  --shadow: 0 22px 70px rgba(154, 103, 103, 0.14);
+  --radius: 22px;
 }
 
 :root[data-theme="amber"] {
@@ -85,6 +95,13 @@ body {
     radial-gradient(circle at 15% -10%, rgba(93, 124, 255, 0.18), transparent 35%),
     radial-gradient(circle at 90% 5%, rgba(84, 213, 168, 0.09), transparent 28%),
     var(--bg);
+}
+
+:root[data-theme="pink-beige"] body {
+  background:
+    radial-gradient(circle at 12% -10%, rgba(255, 190, 210, 0.52), transparent 35%),
+    radial-gradient(circle at 92% 8%, rgba(255, 220, 175, 0.48), transparent 30%),
+    linear-gradient(145deg, #fffaf4 0%, var(--bg) 54%, #f8e5df 100%);
 }
 
 button,
@@ -232,6 +249,43 @@ h2 {
   border-color: transparent;
   background: linear-gradient(135deg, #6d8aff, #506ee8);
   box-shadow: 0 12px 30px rgba(80, 110, 232, 0.27);
+}
+
+:root[data-theme="pink-beige"] .button-primary {
+  color: #fffafc;
+  background: linear-gradient(135deg, #e69abb, #c9749c);
+  box-shadow: 0 12px 30px rgba(199, 111, 151, 0.24);
+}
+
+:root[data-theme="pink-beige"] .button-ghost,
+:root[data-theme="pink-beige"] .language-selector select,
+:root[data-theme="pink-beige"] .theme-selector select {
+  background: rgba(255, 255, 255, 0.58);
+}
+
+:root[data-theme="pink-beige"] .chart-grid {
+  stroke: rgba(151, 116, 126, 0.18);
+}
+
+:root[data-theme="pink-beige"] .chart-axis-label {
+  fill: #9a8087;
+}
+
+:root[data-theme="pink-beige"] .chart-event-dot,
+:root[data-theme="pink-beige"] .chart-hover-dot {
+  stroke: #fff8f3;
+}
+
+:root[data-theme="pink-beige"] .chart-hover-line {
+  stroke: rgba(132, 97, 110, 0.32);
+}
+
+:root[data-theme="pink-beige"] dialog {
+  background: #fff8f2;
+}
+
+:root[data-theme="pink-beige"] dialog::backdrop {
+  background: rgba(111, 73, 83, 0.26);
 }
 
 .button-ghost {
