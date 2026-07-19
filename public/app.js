@@ -139,6 +139,7 @@ const elements = {
   chartEmpty: document.querySelector("#chart-empty"),
   seriesLegend: document.querySelector("#series-legend"),
   tableBody: document.querySelector("#usage-table-body"),
+  tablePanel: document.querySelector(".table-panel"),
   tableDescription: document.querySelector("#table-description"),
   refreshButton: document.querySelector("#refresh-button"),
   tableToggleButton: document.querySelector("#table-toggle-button"),
@@ -1164,15 +1165,29 @@ function hideChartTooltip() {
 }
 
 function renderTable() {
-  const entries = state.tableEntries || state.data?.entries || [];
+  const allEntries = state.tableEntries || state.data?.entries || [];
+  const entries = state.tableExpanded ? allEntries : allEntries.slice(0, 5);
   const total = state.tableTotalCount || state.data?.totalCount || 0;
   const fiveHourCount = state.data?.counts?.["5h"] || 0;
   const weekCount = state.data?.counts?.week || 0;
   const columnCount = state.adminAuthenticated ? 6 : 5;
 
+  elements.tablePanel.classList.toggle("is-collapsed", !state.tableExpanded);
+  elements.tableDescription.hidden = !state.tableExpanded;
+  elements.refreshButton.hidden = !state.tableExpanded;
+
   elements.tableDescription.textContent = state.data?.entriesTruncated
     ? `전체 ${formatNumber(total, 0)}건(5시간 ${formatNumber(fiveHourCount, 0)} · 주간 ${formatNumber(weekCount, 0)}) 중 최근 300건을 표시합니다.`
     : `전체 ${formatNumber(total, 0)}건 · 5시간 ${formatNumber(fiveHourCount, 0)}건 · 주간 ${formatNumber(weekCount, 0)}건`;
+
+  if (state.tableExpanded) {
+    const tableSummary = {
+      en: `${formatNumber(total, 0)} records · ${formatNumber(fiveHourCount, 0)} 5-hour · ${formatNumber(weekCount, 0)} weekly`,
+      ko: `전체 ${formatNumber(total, 0)}건 · 5시간 ${formatNumber(fiveHourCount, 0)}건 · 주간 ${formatNumber(weekCount, 0)}건`,
+      ja: `全${formatNumber(total, 0)}件 · 5時間 ${formatNumber(fiveHourCount, 0)}件 · 週間 ${formatNumber(weekCount, 0)}件`
+    };
+    elements.tableDescription.textContent = tableSummary[currentLanguage];
+  }
 
   if (!entries.length) {
     elements.tableBody.innerHTML =
@@ -1201,7 +1216,9 @@ function renderTable() {
     })
     .join("");
 
-  elements.tableToggleButton.textContent = state.tableExpanded ? "Collapse records" : "Expand records";
+  elements.tableToggleButton.textContent = state.tableExpanded ? "⌃" : "⌄";
+  elements.tableToggleButton.setAttribute("aria-label", state.tableExpanded ? t("collapse") : t("expand"));
+  elements.tableToggleButton.title = state.tableExpanded ? t("collapse") : t("expand");
   elements.tablePagination.hidden = !state.tableExpanded || total <= 100;
   if (state.tableExpanded) {
     const pageCount = Math.max(1, Math.ceil(total / 100));
