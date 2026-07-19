@@ -107,6 +107,27 @@ body {
     var(--bg);
 }
 
+main {
+  display: flex;
+  flex-direction: column;
+}
+
+.range-panel {
+  order: 1;
+}
+
+#chart-card {
+  order: 2;
+}
+
+.summary-grid {
+  order: 3;
+}
+
+.table-panel {
+  order: 4;
+}
+
 :root[data-theme="pink-beige"] body {
   background:
     radial-gradient(circle at 12% -10%, rgba(255, 190, 210, 0.52), transparent 35%),
