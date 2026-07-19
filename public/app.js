@@ -176,6 +176,44 @@ function applyTheme() {
   elements.themeSelect.value = currentTheme;
 }
 
+function setupChartInfo() {
+  const description = document.querySelector(".chart-heading p");
+  if (!description) return;
+
+  const wrapper = document.createElement("span");
+  wrapper.className = "chart-info-wrap";
+
+  const button = document.createElement("button");
+  button.className = "chart-info-button";
+  button.type = "button";
+  button.textContent = "i";
+  button.setAttribute("aria-label", "Chart information");
+
+  const tooltip = document.createElement("span");
+  tooltip.className = "chart-info-tooltip";
+  tooltip.role = "tooltip";
+  tooltip.hidden = true;
+
+  wrapper.append(button, tooltip);
+  description.replaceWith(wrapper);
+  elements.chartInfoButton = button;
+  elements.chartInfoTooltip = tooltip;
+
+  const setTooltipVisible = (visible) => {
+    tooltip.hidden = !visible;
+  };
+
+  wrapper.addEventListener("pointerenter", () => setTooltipVisible(true));
+  wrapper.addEventListener("pointerleave", () => setTooltipVisible(false));
+  button.addEventListener("focus", () => setTooltipVisible(true));
+  button.addEventListener("blur", () => setTooltipVisible(false));
+  button.addEventListener("click", (event) => {
+    event.stopPropagation();
+    setTooltipVisible(tooltip.hidden);
+  });
+  document.addEventListener("click", () => setTooltipVisible(false));
+}
+
 function applyLanguage() {
   const setText = (selector, value) => {
     const element = document.querySelector(selector);
@@ -225,7 +263,8 @@ function applyLanguage() {
   setText("#change-5h-detail", `0 ${t("refreshes")}`);
   setText("#change-week-detail", `0 ${t("refreshes")}`);
   setText(".chart-heading h2", t("chartTitle"));
-  setText(".chart-heading p", t("chartDescription"));
+  if (elements.chartInfoButton) elements.chartInfoButton.setAttribute("aria-label", t("chartDescription"));
+  if (elements.chartInfoTooltip) elements.chartInfoTooltip.textContent = t("chartDescription");
   document.querySelector("#series-legend")?.setAttribute("aria-label", t("series"));
   document.querySelector('[data-series-toggle="5h"]')?.replaceChildren(document.createElement("i"));
   document.querySelector('[data-series-toggle="5h"] i')?.classList.add("series-dot", "series-dot-5h");
@@ -272,6 +311,7 @@ initialize();
 
 async function initialize() {
   applyTheme();
+  setupChartInfo();
   applyLanguage();
   bindEvents();
   updateScaleButtons();

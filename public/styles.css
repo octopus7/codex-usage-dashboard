@@ -665,6 +665,50 @@ h2 {
   gap: 12px;
 }
 
+.chart-info-wrap {
+  position: relative;
+  display: inline-flex;
+  margin-top: 4px;
+}
+
+.chart-info-button {
+  display: inline-grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: 50%;
+  color: var(--accent);
+  background: var(--accent-soft);
+  cursor: help;
+  font-size: 0.74rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.chart-info-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.chart-info-tooltip {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + 9px);
+  left: 0;
+  width: min(360px, calc(100vw - 48px));
+  padding: 10px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 11px;
+  color: var(--text);
+  background: var(--panel-strong);
+  box-shadow: var(--shadow);
+  font-size: 0.76rem;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
 .series-legend {
   display: flex;
   gap: 7px;
