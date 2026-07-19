@@ -102,6 +102,7 @@ const state = {
   tableLoading: false,
   tableEntries: [],
   tableTotalCount: 0,
+  deployInfo: null,
   data: null,
   chartGeometry: null,
   adminConfigured: false,
@@ -183,6 +184,7 @@ function applyLanguage() {
 
   document.documentElement.lang = currentLanguage;
   document.title = t("pageTitle");
+  renderDeployInfo();
   elements.languageSelect.value = currentLanguage;
   elements.languageSelect.setAttribute("aria-label", t("language"));
   setText("h1", t("appTitle"));
@@ -309,11 +311,30 @@ async function loadDeployInfo() {
       pad(deployedAt.getSeconds())
     ].join(":");
 
+    state.deployInfo = { ...info, deployedAt };
+    queueMicrotask(renderDeployInfo);
+
     elements.deployInfo.textContent =
       `Deployed: ${localDate}. ${localTime} · Commit: ${info.commitSha} · Run: #${info.runNumber}`;
   } catch {
     elements.deployInfo.textContent = "Deployment information unavailable";
   }
+}
+
+function renderDeployInfo() {
+  if (!elements.deployInfo || !state.deployInfo) return;
+
+  const formattedDate = new Intl.DateTimeFormat(LANGUAGE_LOCALES[currentLanguage], {
+    year: "numeric",
+    month: currentLanguage === "en" ? "short" : "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit"
+  }).format(state.deployInfo.deployedAt);
+
+  elements.deployInfo.textContent =
+    `${t("deployed")}: ${formattedDate} · ${t("commit")}: ${state.deployInfo.commitSha} · ${t("run")}: #${state.deployInfo.runNumber}`;
 }
 
 function bindEvents() {
@@ -1315,7 +1336,7 @@ function utilizationPercent(row) {
 
 function formatDateTime(timestamp) {
   return new Intl.DateTimeFormat(LANGUAGE_LOCALES[currentLanguage], {
-    month: "2-digit",
+    month: currentLanguage === "en" ? "short" : "2-digit",
     day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
@@ -1326,7 +1347,7 @@ function formatDateTime(timestamp) {
 function formatFullDateTime(timestamp) {
   return new Intl.DateTimeFormat(LANGUAGE_LOCALES[currentLanguage], {
     year: "numeric",
-    month: "2-digit",
+    month: currentLanguage === "en" ? "short" : "2-digit",
     day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
@@ -1338,7 +1359,7 @@ function formatChartTime(timestamp, rangeSeconds) {
   const options =
     rangeSeconds <= 24 * 60 * 60
       ? { hour: "2-digit", minute: "2-digit" }
-      : { month: "2-digit", day: "2-digit", hour: "2-digit" };
+      : { month: currentLanguage === "en" ? "short" : "2-digit", day: "2-digit", hour: "2-digit" };
 
   return new Intl.DateTimeFormat(LANGUAGE_LOCALES[currentLanguage], options).format(new Date(timestamp * 1000));
 }
