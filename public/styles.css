@@ -380,6 +380,25 @@ h2 {
   line-height: 1.55;
 }
 
+.table-actions,
+.table-pagination {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.table-pagination {
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.table-pagination span {
+  min-width: 90px;
+  color: var(--muted);
+  font-size: 0.76rem;
+  text-align: center;
+}
+
 .chart-controls {
   display: flex;
   align-items: center;

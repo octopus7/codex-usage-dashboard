@@ -7,7 +7,8 @@ const USAGE_TYPES = ["5h", "week"];
 const MAX_BATCH_SIZE = 100;
 const MAX_QUERY_RANGE_SECONDS = 366 * 24 * 60 * 60;
 const MAX_SERIES_POINTS_PER_TYPE = 1200;
-const MAX_TABLE_ROWS = 300;
+const INITIAL_TABLE_ROWS = 50;
+const TABLE_PAGE_SIZE = 100;
 const SESSION_COOKIE_NAME = "codex_admin_session";
 const SESSION_TTL_SECONDS = 7 * 24 * 60 * 60;
 const PASSWORD_MIN_LENGTH = 10;
@@ -129,6 +130,10 @@ async function routeApi(request, env, url) {
 
   if (request.method === "GET" && url.pathname === "/api/usage") {
     return getUsage(env, url);
+  }
+
+  if (request.method === "GET" && url.pathname === "/api/usage/entries") {
+    return getUsageEntries(env, url);
   }
 
   if (request.method === "POST" && url.pathname === "/api/usage") {
@@ -261,7 +266,7 @@ async function getUsage(env, url) {
       WHERE recorded_at >= ? AND recorded_at < ?
       ORDER BY recorded_at DESC, id DESC
       LIMIT ?
-    `).bind(start, end, MAX_TABLE_ROWS)
+    `).bind(start, end, INITIAL_TABLE_ROWS)
   );
 
   statements.push(
@@ -315,6 +320,53 @@ async function getUsage(env, url) {
     counts,
     totalCount,
     entriesTruncated: totalCount > entries.length
+  });
+}
+
+async function getUsageEntries(env, url) {
+  const now = Math.floor(Date.now() / 1000);
+  const end = parseInteger(url.searchParams.get("end"), now);
+  const start = parseInteger(url.searchParams.get("start"), end - 24 * 60 * 60);
+  const offset = parseInteger(url.searchParams.get("offset"), 0);
+  const limit = parseInteger(url.searchParams.get("limit"), TABLE_PAGE_SIZE);
+
+  if (!Number.isInteger(start) || !Number.isInteger(end) || start >= end) {
+    return jsonResponse({ ok: false, error: "invalid_range", message: "Invalid usage range." }, 400);
+  }
+
+  if (end - start > MAX_QUERY_RANGE_SECONDS) {
+    return jsonResponse({ ok: false, error: "range_too_large", message: "Usage range is too large." }, 400);
+  }
+
+  if (!Number.isInteger(offset) || offset < 0) {
+    return jsonResponse({ ok: false, error: "invalid_offset", message: "Invalid table offset." }, 400);
+  }
+
+  if (!Number.isInteger(limit) || limit < 1 || limit > TABLE_PAGE_SIZE) {
+    return jsonResponse({ ok: false, error: "invalid_limit", message: "Invalid table page size." }, 400);
+  }
+
+  const [entriesResult, countResult] = await env.DB.batch([
+    env.DB.prepare(`
+      SELECT ${SELECT_COLUMNS}
+      FROM codex_usage
+      WHERE recorded_at >= ? AND recorded_at < ?
+      ORDER BY recorded_at DESC, id DESC
+      LIMIT ? OFFSET ?
+    `).bind(start, end, limit, offset),
+    env.DB.prepare(`
+      SELECT COUNT(*) AS count
+      FROM codex_usage
+      WHERE recorded_at >= ? AND recorded_at < ?
+    `).bind(start, end)
+  ]);
+
+  return jsonResponse({
+    ok: true,
+    entries: (entriesResult.results || []).map(normalizeRow),
+    totalCount: Number(countResult.results?.[0]?.count || 0),
+    offset,
+    limit
   });
 }
 

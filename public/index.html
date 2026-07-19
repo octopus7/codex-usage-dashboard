@@ -101,7 +101,10 @@
             <h2>독립 측정 기록</h2>
             <p id="table-description">5시간과 주간 데이터는 서로 다른 행으로 저장됩니다.</p>
           </div>
-          <button id="refresh-button" class="button button-ghost" type="button">새로고침</button>
+          <div class="table-actions">
+            <button id="table-toggle-button" class="button button-ghost" type="button">Expand records</button>
+            <button id="refresh-button" class="button button-ghost" type="button">새로고침</button>
+          </div>
         </div>
 
         <div class="table-scroll">
@@ -118,6 +121,12 @@
             </thead>
             <tbody id="usage-table-body"></tbody>
           </table>
+        </div>
+
+        <div id="table-pagination" class="table-pagination" hidden>
+          <button id="table-previous-button" class="button button-ghost" type="button">Previous</button>
+          <span id="table-page-label"></span>
+          <button id="table-next-button" class="button button-ghost" type="button">Next</button>
         </div>
       </section>
     </main>

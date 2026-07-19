@@ -47,6 +47,11 @@ const state = {
   metric: initialMetric,
   visibleTypes: initialVisibleTypes,
   loading: false,
+  tableExpanded: false,
+  tablePage: 0,
+  tableLoading: false,
+  tableEntries: [],
+  tableTotalCount: 0,
   data: null,
   chartGeometry: null,
   adminConfigured: false,
@@ -78,6 +83,11 @@ const elements = {
   tableBody: document.querySelector("#usage-table-body"),
   tableDescription: document.querySelector("#table-description"),
   refreshButton: document.querySelector("#refresh-button"),
+  tableToggleButton: document.querySelector("#table-toggle-button"),
+  tablePagination: document.querySelector("#table-pagination"),
+  tablePreviousButton: document.querySelector("#table-previous-button"),
+  tableNextButton: document.querySelector("#table-next-button"),
+  tablePageLabel: document.querySelector("#table-page-label"),
   adminActionsHeader: document.querySelector("#admin-action-header"),
   adminLoginButton: document.querySelector("#admin-login-button"),
   adminLogoutButton: document.querySelector("#admin-logout-button"),
@@ -212,6 +222,10 @@ function bindEvents() {
     );
   });
 
+  elements.tableToggleButton.addEventListener("click", toggleTableExpanded);
+  elements.tablePreviousButton.addEventListener("click", () => loadTablePage(state.tablePage - 1));
+  elements.tableNextButton.addEventListener("click", () => loadTablePage(state.tablePage + 1));
+
   elements.chart.addEventListener("pointermove", updateChartTooltip);
   elements.chart.addEventListener("pointerleave", hideChartTooltip);
 
@@ -291,6 +305,10 @@ async function loadUsage({ quiet = false } = {}) {
     if (!response.ok) throw new Error(result.message || "조회에 실패했습니다.");
 
     state.data = result;
+    state.tableEntries = result.entries || [];
+    state.tableTotalCount = result.totalCount || 0;
+    state.tablePage = 0;
+    state.tableExpanded = false;
     renderSummary();
     renderChart();
     renderTable();
@@ -312,6 +330,58 @@ async function checkHealth() {
     setConnectionStatus(true, "D1 연결됨");
   } catch {
     setConnectionStatus(false, "설정 확인 필요");
+  }
+}
+
+async function toggleTableExpanded() {
+  if (state.tableLoading) return;
+
+  state.tableExpanded = !state.tableExpanded;
+  if (state.tableExpanded) {
+    await loadTablePage(0);
+  } else {
+    state.tableEntries = state.data?.entries || [];
+    state.tablePage = 0;
+    renderTable();
+  }
+}
+
+async function loadTablePage(page) {
+  if (state.tableLoading || !state.data || page < 0) return;
+
+  const offset = page * 100;
+  if (offset >= state.tableTotalCount && state.tableTotalCount > 0) return;
+
+  state.tableLoading = true;
+  elements.tableToggleButton.disabled = true;
+  elements.tablePreviousButton.disabled = true;
+  elements.tableNextButton.disabled = true;
+
+  try {
+    const { start, end } = state.data.range;
+    const query = new URLSearchParams({
+      start: String(start),
+      end: String(end),
+      offset: String(offset),
+      limit: "100"
+    });
+    const response = await fetch(`/api/usage/entries?${query}`, {
+      headers: { Accept: "application/json" },
+      cache: "no-store"
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.message || "Unable to load table records.");
+
+    state.tableEntries = result.entries || [];
+    state.tablePage = page;
+    state.tableTotalCount = result.totalCount || 0;
+    renderTable();
+  } catch (error) {
+    showToast(error.message, true);
+  } finally {
+    state.tableLoading = false;
+    elements.tableToggleButton.disabled = false;
+    renderTable();
   }
 }
 
@@ -897,8 +967,8 @@ function hideChartTooltip() {
 }
 
 function renderTable() {
-  const entries = state.data?.entries || [];
-  const total = state.data?.totalCount || 0;
+  const entries = state.tableEntries || state.data?.entries || [];
+  const total = state.tableTotalCount || state.data?.totalCount || 0;
   const fiveHourCount = state.data?.counts?.["5h"] || 0;
   const weekCount = state.data?.counts?.week || 0;
   const columnCount = state.adminAuthenticated ? 6 : 5;
@@ -933,6 +1003,15 @@ function renderTable() {
       `;
     })
     .join("");
+
+  elements.tableToggleButton.textContent = state.tableExpanded ? "Collapse records" : "Expand records";
+  elements.tablePagination.hidden = !state.tableExpanded || total <= 100;
+  if (state.tableExpanded) {
+    const pageCount = Math.max(1, Math.ceil(total / 100));
+    elements.tablePageLabel.textContent = `Page ${state.tablePage + 1} of ${pageCount}`;
+    elements.tablePreviousButton.disabled = state.tablePage === 0 || state.tableLoading;
+    elements.tableNextButton.disabled = state.tablePage >= pageCount - 1 || state.tableLoading;
+  }
 }
 
 function renderLoadError(message) {
