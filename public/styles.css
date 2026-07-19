@@ -408,27 +408,28 @@ h2 {
 
 .range-panel {
   display: grid;
-  gap: 18px;
-  padding: 16px;
+  gap: 10px;
+  padding: 10px 12px;
   border-radius: var(--radius);
 }
 
 .scale-selector {
   display: grid;
   grid-template-columns: repeat(8, minmax(70px, 1fr));
-  gap: 8px;
+  gap: 5px;
   overflow-x: auto;
   scrollbar-width: thin;
 }
 
 .scale-selector button {
-  min-width: 70px;
-  min-height: 40px;
-  padding: 0 12px;
+  min-width: 58px;
+  min-height: 32px;
+  padding: 0 8px;
   border: 1px solid transparent;
-  border-radius: 11px;
+  border-radius: 9px;
   color: var(--muted);
   background: rgba(255, 255, 255, 0.035);
+  font-size: 0.78rem;
   font-weight: 780;
 }
 
@@ -440,18 +441,18 @@ h2 {
 
 .range-navigation {
   display: grid;
-  grid-template-columns: 44px 1fr 44px;
+  grid-template-columns: 36px 1fr 36px;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 .icon-button {
-  width: 44px;
-  height: 44px;
+  width: 36px;
+  height: 36px;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 10px;
   background: rgba(255, 255, 255, 0.04);
-  font-size: 1.25rem;
+  font-size: 1.05rem;
 }
 
 .range-title-wrap {
@@ -465,13 +466,13 @@ h2 {
 }
 
 .range-title-wrap strong {
-  font-size: clamp(0.95rem, 2.5vw, 1.2rem);
+  font-size: clamp(0.88rem, 2.2vw, 1.08rem);
 }
 
 .range-title-wrap span {
-  margin-top: 3px;
+  margin-top: 1px;
   color: var(--muted);
-  font-size: 0.75rem;
+  font-size: 0.68rem;
 }
 
 .summary-grid {
@@ -1097,7 +1098,7 @@ dialog::backdrop {
 
 @media (max-width: 1080px) {
   .scale-selector {
-    grid-template-columns: repeat(8, minmax(82px, 1fr));
+    grid-template-columns: repeat(8, minmax(58px, 1fr));
   }
 
   .summary-grid {
