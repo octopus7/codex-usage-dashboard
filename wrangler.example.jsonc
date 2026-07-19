@@ -8,9 +8,14 @@
     "binding": "ASSETS",
     "run_worker_first": true
   },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "codex-usage-db",
+      "database_id": "__D1_DATABASE_ID__"
+    }
+  ],
   "observability": {
     "enabled": true
   }
-
-  // `npm run setup:db`를 실행하면 d1_databases 설정이 이 파일에 자동 추가됩니다.
 }
