@@ -10,7 +10,7 @@ const TRANSLATIONS = {
     language: "Language", checking: "Checking connection", connected: "D1 connected", connectionError: "Connection error", setupNeeded: "Setup required",
     adminLogin: "Admin login", adminLogout: "Log out", addUsage: "Add usage", range: "Range", hour: "hour", hours: "hours", day: "day", days: "days", week: "week", weeks: "weeks",
     previous: "Previous period", next: "Next period", swipePrevious: "Swipe left for previous period", summary: "Usage summary", current: "current", change: "change", noData: "No data", refreshes: "refreshes", carried: "previous value carried", baseline: "includes baseline before range",
-    chartTitle: "5-hour · Weekly usage trend", chartDescription: "Points are connected with straight lines; decreases are treated as resets and split the line.", series: "Displayed series", fiveHour: "5-hour", weekly: "Weekly", chartAria: "Codex 5-hour and weekly usage line chart", chartEmpty: "No data to display for this range.", chooseSeries: "Select a series from the legend.", selectedDataEmpty: "No usage data for the selected range.",
+    chartTitle: "5-hour · Weekly usage trend", chartDescription: "Values stay flat until the next measurement; decreases are treated as resets and split the line.", series: "Displayed series", fiveHour: "5-hour", weekly: "Weekly", chartAria: "Codex 5-hour and weekly usage step chart", chartEmpty: "No data to display for this range.", chooseSeries: "Select a series from the legend.", selectedDataEmpty: "No usage data for the selected range.",
     tableTitle: "Independent measurements", tableDescription: "5-hour and weekly data are stored as separate records.", type: "Type", measuredAt: "Measured at", utilization: "Utilization", source: "Source", note: "Note", admin: "Admin", expand: "Expand records", collapse: "Collapse records", page: "Page", of: "of",
     setupEyebrow: "One-time setup", setupTitle: "Create admin password", setupHelp: "No admin password exists yet. The password will be used for manual additions and deletions. Plaintext is not stored; only a salted hash is kept in D1.", security: "Set the password immediately after deployment.", newPassword: "New password", confirmPassword: "Confirm new password", later: "Later", savePassword: "Save password",
     adminFeatures: "Admin features", loginTitle: "Admin login", loginHelp: "Only this browser receives an HttpOnly session cookie. After login, usage add and delete controls become available.", password: "Password", cancel: "Cancel", login: "Log in",
@@ -18,10 +18,10 @@ const TRANSLATIONS = {
     cannotLoad: "Unable to load usage data.", adminStatusFailed: "Unable to check admin status.", passwordMismatch: "Passwords do not match.", passwordMin: "Password must be at least 10 characters.", passwordSetupFailed: "Unable to set the admin password.", passwordSetupSuccess: "Admin password set and logged in.", loginFailed: "Login failed.", loginSuccess: "Logged in as admin.", logoutFailed: "Logout failed.", logoutSuccess: "Logged out.", sessionExpired: "Your admin session expired. Please log in again.", loginRequired: "Admin login is required for add and delete operations.", passwordRequired: "Set an admin password first.", saveFailed: "Unable to save.", deleteFailed: "Unable to delete.", confirmDelete: "Delete {label} data (ID {id}, {time})?", deleted: "{label} data deleted.", added: "{label} usage added."
   },
   ko: {
-    pageTitle: "Codex 사용량 대시보드", appTitle: "Codex 사용량", description: "5시간 및 주간 사용량을 독립적으로 수집하고 하나의 시간축에서 비교합니다.", language: "언어", checking: "연결 확인 중", connected: "D1 연결됨", connectionError: "연결 오류", setupNeeded: "설정 확인 필요", adminLogin: "관리자 로그인", adminLogout: "로그아웃", addUsage: "사용량 추가", range: "조회 범위", hour: "시간", hours: "시간", day: "일", days: "일", week: "주", weeks: "주", previous: "이전 기간", next: "다음 기간", swipePrevious: "왼쪽으로 스와이프하면 이전 기간", summary: "사용량 요약", current: "현재", change: "변화", noData: "데이터 없음", refreshes: "회 갱신", carried: "이전 값 유지", baseline: "범위 시작 전 기준점 포함", chartTitle: "5시간 · 주간 사용량 추이", chartDescription: "데이터 지점은 직선으로 연결하며, 값이 감소하면 리셋으로 판단해 선을 끊습니다.", series: "표시 시리즈", fiveHour: "5시간", weekly: "주간", chartAria: "5시간 및 주간 Codex 사용량 직선 시계열 차트", chartEmpty: "이 기간에는 표시할 데이터가 없습니다.", chooseSeries: "범례에서 표시할 시계열을 선택하세요.", selectedDataEmpty: "선택한 기간에 사용량 데이터가 없습니다.", tableTitle: "독립 측정 기록", tableDescription: "5시간과 주간 데이터는 서로 다른 행으로 저장됩니다.", type: "종류", measuredAt: "측정 시각", utilization: "사용률", source: "출처", note: "메모", admin: "관리", expand: "기록 펼치기", collapse: "기록 접기", page: "페이지", of: "/", setupEyebrow: "최초 1회 설정", setupTitle: "관리자 비밀번호 만들기", setupHelp: "아직 관리자 비밀번호가 없습니다. 비밀번호는 수동 추가와 삭제에 사용됩니다. 원문은 저장되지 않고 D1에는 salt가 적용된 해시만 보관됩니다.", security: "배포 직후 관리자 비밀번호를 설정하세요.", newPassword: "새 비밀번호", confirmPassword: "새 비밀번호 확인", later: "나중에", savePassword: "비밀번호 저장", adminFeatures: "관리 기능", loginTitle: "관리자 로그인", loginHelp: "로그인한 브라우저에만 HttpOnly 세션 쿠키가 발급됩니다. 로그인 후 사용량 추가와 삭제 버튼이 표시됩니다.", password: "비밀번호", cancel: "취소", login: "로그인", manualEntry: "독립 시계열 수동 입력", addTitle: "사용량 추가", usageType: "사용량 종류", measuredTime: "측정 시각", usagePercent: "사용률(%)", placeholderPercent: "예: 42.5", optional: "선택", save: "저장", close: "닫기", delete: "삭제", deploymentUnavailable: "배포 정보 없음", deployed: "배포", commit: "커밋", run: "실행", unableLoadTable: "테이블 기록을 불러올 수 없습니다.", cannotLoad: "사용량을 조회하지 못했습니다.", adminStatusFailed: "관리자 상태를 확인하지 못했습니다.", passwordMismatch: "비밀번호 확인 값이 일치하지 않습니다.", passwordMin: "비밀번호는 10자 이상이어야 합니다.", passwordSetupFailed: "관리자 비밀번호 설정에 실패했습니다.", passwordSetupSuccess: "관리자 비밀번호를 설정하고 로그인했습니다.", loginFailed: "로그인에 실패했습니다.", loginSuccess: "관리자로 로그인했습니다.", logoutFailed: "로그아웃에 실패했습니다.", logoutSuccess: "로그아웃했습니다.", sessionExpired: "관리자 세션이 만료되었습니다. 다시 로그인하세요.", loginRequired: "추가·삭제를 위해 관리자 로그인이 필요합니다.", passwordRequired: "먼저 관리자 비밀번호를 설정하세요.", saveFailed: "저장에 실패했습니다.", deleteFailed: "삭제에 실패했습니다.", confirmDelete: "{label} 데이터(ID {id}, {time})를 삭제하시겠습니까?", deleted: "{label} 데이터를 삭제했습니다.", added: "{label} 사용량을 추가했습니다."
+    pageTitle: "Codex 사용량 대시보드", appTitle: "Codex 사용량", description: "5시간 및 주간 사용량을 독립적으로 수집하고 하나의 시간축에서 비교합니다.", language: "언어", checking: "연결 확인 중", connected: "D1 연결됨", connectionError: "연결 오류", setupNeeded: "설정 확인 필요", adminLogin: "관리자 로그인", adminLogout: "로그아웃", addUsage: "사용량 추가", range: "조회 범위", hour: "시간", hours: "시간", day: "일", days: "일", week: "주", weeks: "주", previous: "이전 기간", next: "다음 기간", swipePrevious: "왼쪽으로 스와이프하면 이전 기간", summary: "사용량 요약", current: "현재", change: "변화", noData: "데이터 없음", refreshes: "회 갱신", carried: "이전 값 유지", baseline: "범위 시작 전 기준점 포함", chartTitle: "5시간 · 주간 사용량 추이", chartDescription: "다음 측정값이 올 때까지 값을 평탄하게 유지하며, 값이 감소하면 리셋으로 판단해 선을 끊습니다.", series: "표시 시리즈", fiveHour: "5시간", weekly: "주간", chartAria: "5시간 및 주간 Codex 사용량 계단형 시계열 차트", chartEmpty: "이 기간에는 표시할 데이터가 없습니다.", chooseSeries: "범례에서 표시할 시계열을 선택하세요.", selectedDataEmpty: "선택한 기간에 사용량 데이터가 없습니다.", tableTitle: "독립 측정 기록", tableDescription: "5시간과 주간 데이터는 서로 다른 행으로 저장됩니다.", type: "종류", measuredAt: "측정 시각", utilization: "사용률", source: "출처", note: "메모", admin: "관리", expand: "기록 펼치기", collapse: "기록 접기", page: "페이지", of: "/", setupEyebrow: "최초 1회 설정", setupTitle: "관리자 비밀번호 만들기", setupHelp: "아직 관리자 비밀번호가 없습니다. 비밀번호는 수동 추가와 삭제에 사용됩니다. 원문은 저장되지 않고 D1에는 salt가 적용된 해시만 보관됩니다.", security: "배포 직후 관리자 비밀번호를 설정하세요.", newPassword: "새 비밀번호", confirmPassword: "새 비밀번호 확인", later: "나중에", savePassword: "비밀번호 저장", adminFeatures: "관리 기능", loginTitle: "관리자 로그인", loginHelp: "로그인한 브라우저에만 HttpOnly 세션 쿠키가 발급됩니다. 로그인 후 사용량 추가와 삭제 버튼이 표시됩니다.", password: "비밀번호", cancel: "취소", login: "로그인", manualEntry: "독립 시계열 수동 입력", addTitle: "사용량 추가", usageType: "사용량 종류", measuredTime: "측정 시각", usagePercent: "사용률(%)", placeholderPercent: "예: 42.5", optional: "선택", save: "저장", close: "닫기", delete: "삭제", deploymentUnavailable: "배포 정보 없음", deployed: "배포", commit: "커밋", run: "실행", unableLoadTable: "테이블 기록을 불러올 수 없습니다.", cannotLoad: "사용량을 조회하지 못했습니다.", adminStatusFailed: "관리자 상태를 확인하지 못했습니다.", passwordMismatch: "비밀번호 확인 값이 일치하지 않습니다.", passwordMin: "비밀번호는 10자 이상이어야 합니다.", passwordSetupFailed: "관리자 비밀번호 설정에 실패했습니다.", passwordSetupSuccess: "관리자 비밀번호를 설정하고 로그인했습니다.", loginFailed: "로그인에 실패했습니다.", loginSuccess: "관리자로 로그인했습니다.", logoutFailed: "로그아웃에 실패했습니다.", logoutSuccess: "로그아웃했습니다.", sessionExpired: "관리자 세션이 만료되었습니다. 다시 로그인하세요.", loginRequired: "추가·삭제를 위해 관리자 로그인이 필요합니다.", passwordRequired: "먼저 관리자 비밀번호를 설정하세요.", saveFailed: "저장에 실패했습니다.", deleteFailed: "삭제에 실패했습니다.", confirmDelete: "{label} 데이터(ID {id}, {time})를 삭제하시겠습니까?", deleted: "{label} 데이터를 삭제했습니다.", added: "{label} 사용량을 추가했습니다."
   },
   ja: {
-    pageTitle: "Codex 使用量ダッシュボード", appTitle: "Codex 使用量", description: "5時間と週間の使用量を個別に収集し、1つの時間軸で比較します。", language: "言語", checking: "接続を確認中", connected: "D1 接続済み", connectionError: "接続エラー", setupNeeded: "設定の確認が必要", adminLogin: "管理者ログイン", adminLogout: "ログアウト", addUsage: "使用量を追加", range: "範囲", hour: "時間", hours: "時間", day: "日", days: "日", week: "週", weeks: "週", previous: "前の期間", next: "次の期間", swipePrevious: "左にスワイプすると前の期間", summary: "使用量の概要", current: "現在", change: "変化", noData: "データなし", refreshes: "回更新", carried: "前の値を維持", baseline: "範囲開始前の基準値を含む", chartTitle: "5時間 · 週間使用量の推移", chartDescription: "データ点を直線で結び、値が減少した場合はリセットとして線を分割します。", series: "表示する系列", fiveHour: "5時間", weekly: "週間", chartAria: "Codex 5時間および週間使用量の折れ線グラフ", chartEmpty: "この期間に表示できるデータはありません。", chooseSeries: "凡例から表示する系列を選択してください。", selectedDataEmpty: "選択した期間に使用量データがありません。", tableTitle: "個別測定記録", tableDescription: "5時間と週間のデータは別々の行に保存されます。", type: "種類", measuredAt: "測定時刻", utilization: "使用率", source: "ソース", note: "メモ", admin: "管理", expand: "記録を展開", collapse: "記録を折りたたむ", page: "ページ", of: "/", setupEyebrow: "初回のみ設定", setupTitle: "管理者パスワードを作成", setupHelp: "管理者パスワードがまだありません。手動追加と削除に使用します。平文は保存せず、D1にはsalt付きハッシュのみ保存します。", security: "デプロイ後すぐに管理者パスワードを設定してください。", newPassword: "新しいパスワード", confirmPassword: "新しいパスワードの確認", later: "後で", savePassword: "パスワードを保存", adminFeatures: "管理機能", loginTitle: "管理者ログイン", loginHelp: "ログインしたブラウザだけにHttpOnlyセッションCookieを発行します。ログイン後に追加と削除ボタンが表示されます。", password: "パスワード", cancel: "キャンセル", login: "ログイン", manualEntry: "時系列データを手動入力", addTitle: "使用量を追加", usageType: "使用量の種類", measuredTime: "測定時刻", usagePercent: "使用率(%)", placeholderPercent: "例: 42.5", optional: "任意", save: "保存", close: "閉じる", delete: "削除", deploymentUnavailable: "デプロイ情報なし", deployed: "デプロイ", commit: "コミット", run: "実行", unableLoadTable: "テーブル記録を読み込めません。", cannotLoad: "使用量を読み込めません。", adminStatusFailed: "管理者状態を確認できません。", passwordMismatch: "パスワードが一致しません。", passwordMin: "パスワードは10文字以上必要です。", passwordSetupFailed: "管理者パスワードを設定できません。", passwordSetupSuccess: "管理者パスワードを設定してログインしました。", loginFailed: "ログインに失敗しました。", loginSuccess: "管理者としてログインしました。", logoutFailed: "ログアウトに失敗しました。", logoutSuccess: "ログアウトしました。", sessionExpired: "管理者セッションの有効期限が切れました。再度ログインしてください。", loginRequired: "追加と削除には管理者ログインが必要です。", passwordRequired: "先に管理者パスワードを設定してください。", saveFailed: "保存に失敗しました。", deleteFailed: "削除に失敗しました。", confirmDelete: "{label}データ(ID {id}, {time})を削除しますか？", deleted: "{label}データを削除しました。", added: "{label}の使用量を追加しました。"
+    pageTitle: "Codex 使用量ダッシュボード", appTitle: "Codex 使用量", description: "5時間と週間の使用量を個別に収集し、1つの時間軸で比較します。", language: "言語", checking: "接続を確認中", connected: "D1 接続済み", connectionError: "接続エラー", setupNeeded: "設定の確認が必要", adminLogin: "管理者ログイン", adminLogout: "ログアウト", addUsage: "使用量を追加", range: "範囲", hour: "時間", hours: "時間", day: "日", days: "日", week: "週", weeks: "週", previous: "前の期間", next: "次の期間", swipePrevious: "左にスワイプすると前の期間", summary: "使用量の概要", current: "現在", change: "変化", noData: "データなし", refreshes: "回更新", carried: "前の値を維持", baseline: "範囲開始前の基準値を含む", chartTitle: "5時間 · 週間使用量の推移", chartDescription: "次の測定値が来るまで値を水平に保ち、値が減少した場合はリセットとして線を分割します。", series: "表示する系列", fiveHour: "5時間", weekly: "週間", chartAria: "Codex 5時間および週間使用量の階段時系列グラフ", chartEmpty: "この期間に表示できるデータはありません。", chooseSeries: "凡例から表示する系列を選択してください。", selectedDataEmpty: "選択した期間に使用量データがありません。", tableTitle: "個別測定記録", tableDescription: "5時間と週間のデータは別々の行に保存されます。", type: "種類", measuredAt: "測定時刻", utilization: "使用率", source: "ソース", note: "メモ", admin: "管理", expand: "記録を展開", collapse: "記録を折りたたむ", page: "ページ", of: "/", setupEyebrow: "初回のみ設定", setupTitle: "管理者パスワードを作成", setupHelp: "管理者パスワードがまだありません。手動追加と削除に使用します。平文は保存せず、D1にはsalt付きハッシュのみ保存します。", security: "デプロイ後すぐに管理者パスワードを設定してください。", newPassword: "新しいパスワード", confirmPassword: "新しいパスワードの確認", later: "後で", savePassword: "パスワードを保存", adminFeatures: "管理機能", loginTitle: "管理者ログイン", loginHelp: "ログインしたブラウザだけにHttpOnlyセッションCookieを発行します。ログイン後に追加と削除ボタンが表示されます。", password: "パスワード", cancel: "キャンセル", login: "ログイン", manualEntry: "時系列データを手動入力", addTitle: "使用量を追加", usageType: "使用量の種類", measuredTime: "測定時刻", usagePercent: "使用率(%)", placeholderPercent: "例: 42.5", optional: "任意", save: "保存", close: "閉じる", delete: "削除", deploymentUnavailable: "デプロイ情報なし", deployed: "デプロイ", commit: "コミット", run: "実行", unableLoadTable: "テーブル記録を読み込めません。", cannotLoad: "使用量を読み込めません。", adminStatusFailed: "管理者状態を確認できません。", passwordMismatch: "パスワードが一致しません。", passwordMin: "パスワードは10文字以上必要です。", passwordSetupFailed: "管理者パスワードを設定できません。", passwordSetupSuccess: "管理者パスワードを設定してログインしました。", loginFailed: "ログインに失敗しました。", loginSuccess: "管理者としてログインしました。", logoutFailed: "ログアウトに失敗しました。", logoutSuccess: "ログアウトしました。", sessionExpired: "管理者セッションの有効期限が切れました。再度ログインしてください。", loginRequired: "追加と削除には管理者ログインが必要です。", passwordRequired: "先に管理者パスワードを設定してください。", saveFailed: "保存に失敗しました。", deleteFailed: "削除に失敗しました。", confirmDelete: "{label}データ(ID {id}, {time})を削除しますか？", deleted: "{label}データを削除しました。", added: "{label}の使用量を追加しました。"
   }
 };
 
@@ -994,7 +994,7 @@ function renderChart() {
 
     const suffix = SERIES_META[usageType].cssSuffix;
     seriesMarkup.push(
-      `<path class="chart-line chart-line-${suffix}" d="${createLinearResetPath(points, width - padding.right)}"></path>`
+      `<path class="chart-line chart-line-${suffix}" d="${createStepResetPath(points, width - padding.right)}"></path>`
     );
 
     if (showEventDots) {
@@ -1064,15 +1064,19 @@ function buildMetricPoints(usageType, metric, range) {
   );
 }
 
-function createLinearResetPath(points, endX) {
+function createStepResetPath(points, endX) {
   const [first, ...rest] = points;
   if (!first) return "";
   const parts = [`M ${first.x.toFixed(2)} ${first.y.toFixed(2)}`];
   let previous = first;
 
   for (const point of rest) {
-    const command = isUsageReset(previous, point) ? "M" : "L";
-    parts.push(`${command} ${point.x.toFixed(2)} ${point.y.toFixed(2)}`);
+    if (isUsageReset(previous, point)) {
+      parts.push(`M ${point.x.toFixed(2)} ${point.y.toFixed(2)}`);
+    } else {
+      parts.push(`L ${point.x.toFixed(2)} ${previous.y.toFixed(2)}`);
+      parts.push(`L ${point.x.toFixed(2)} ${point.y.toFixed(2)}`);
+    }
     previous = point;
   }
 
@@ -1146,11 +1150,7 @@ function updateChartTooltip(event) {
             <i class="series-dot dot-${meta.cssSuffix}"></i>
             <strong>${escapeHtml(meta.label)}</strong>
             <span>${escapeHtml(geometry.metric.format(point.value))}</span>
-            <small>${escapeHtml(
-              point.interpolated
-                ? `${formatFullDateTime(point.segmentStartAt)} → ${formatFullDateTime(point.segmentEndAt)} 직선 구간`
-                : `마지막 갱신 ${formatFullDateTime(point.actualRecordedAt)}`
-            )}</small>
+            <small>${escapeHtml(`마지막 갱신 ${formatFullDateTime(point.actualRecordedAt)}`)}</small>
           </div>
         `;
       })
@@ -1186,18 +1186,7 @@ function findChartPointAtTimestamp(points, timestamp) {
     if (timestamp >= next.timestamp) continue;
     if (isUsageReset(current, next)) return null;
 
-    const duration = next.timestamp - current.timestamp;
-    if (duration <= 0) return next;
-    const ratio = (timestamp - current.timestamp) / duration;
-    return {
-      ...current,
-      timestamp,
-      value: current.value + (next.value - current.value) * ratio,
-      y: current.y + (next.y - current.y) * ratio,
-      interpolated: true,
-      segmentStartAt: current.actualRecordedAt,
-      segmentEndAt: next.actualRecordedAt
-    };
+    return current;
   }
 
   return points[points.length - 1] || null;

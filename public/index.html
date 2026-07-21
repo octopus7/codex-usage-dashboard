@@ -91,7 +91,7 @@
         <div class="panel-heading chart-heading">
           <div>
             <h2>5시간 · 주간 사용량 추이</h2>
-            <p>데이터 지점은 직선으로 연결하고, 값이 감소하면 리셋으로 판단해 해당 구간의 선을 끊습니다.</p>
+            <p>다음 측정값이 올 때까지 값을 평탄하게 유지하고, 값이 감소하면 리셋으로 판단해 해당 구간의 선을 끊습니다.</p>
           </div>
           <div class="chart-controls">
             <div id="series-legend" class="series-legend" role="group" aria-label="표시 시리즈">
@@ -111,7 +111,7 @@
         </div>
 
         <div id="chart-wrap" class="chart-wrap">
-          <svg id="usage-chart" viewBox="0 0 900 340" role="img" aria-label="5시간 및 주간 Codex 사용량 직선 시계열 차트"></svg>
+          <svg id="usage-chart" viewBox="0 0 900 340" role="img" aria-label="5시간 및 주간 Codex 사용량 계단형 시계열 차트"></svg>
           <div id="chart-tooltip" class="chart-tooltip" hidden></div>
           <div id="chart-empty" class="chart-empty" hidden>이 기간에는 표시할 데이터가 없습니다.</div>
         </div>

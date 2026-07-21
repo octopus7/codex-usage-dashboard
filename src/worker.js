@@ -231,6 +231,10 @@ async function getUsage(env, url) {
                 ORDER BY recordedAt DESC, id DESC
               ) AS bucketRank,
               ROW_NUMBER() OVER (
+                PARTITION BY bucketKey
+                ORDER BY recordedAt ASC, id ASC
+              ) AS bucketFirstRank,
+              ROW_NUMBER() OVER (
                 ORDER BY recordedAt ASC, id ASC
               ) AS firstRank,
               ROW_NUMBER() OVER (
@@ -241,6 +245,7 @@ async function getUsage(env, url) {
           SELECT ${OUTER_COLUMNS}
           FROM ranked
           WHERE bucketRank = 1
+             OR bucketFirstRank = 1
              OR firstRank = 1
              OR lastRank = 1
              OR (previousProgress IS NOT NULL AND progressValue < previousProgress)
