@@ -285,7 +285,9 @@ function applyLanguage() {
   document.querySelectorAll(".table-panel thead th").forEach((header, index) => {
     header.textContent = [t("type"), t("measuredAt"), t("utilization"), t("source"), t("note"), t("admin")][index] || header.textContent;
   });
-  setText("#table-toggle-button", state.tableExpanded ? t("collapse") : t("expand"));
+  elements.tableToggleButton.textContent = state.tableExpanded ? "⌃" : "⌄";
+  elements.tableToggleButton.setAttribute("aria-label", state.tableExpanded ? t("collapse") : t("expand"));
+  elements.tableToggleButton.title = state.tableExpanded ? t("collapse") : t("expand");
   setText("#table-previous-button", t("previous"));
   setText("#table-next-button", t("next"));
 

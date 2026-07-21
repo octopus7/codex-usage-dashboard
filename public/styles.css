@@ -711,6 +711,13 @@ h2 {
   line-height: 1;
 }
 
+#table-toggle-button {
+  width: 34px;
+  min-width: 34px;
+  padding: 0;
+  white-space: nowrap;
+}
+
 .chart-controls {
   display: flex;
   align-items: center;
