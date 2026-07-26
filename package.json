@@ -10,7 +10,8 @@
     "db:migrate:remote": "wrangler d1 migrations apply DB --remote",
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
-    "check": "node --check src/worker.js && node --check public/app.js"
+    "check": "node --check src/worker.js && node --check src/rss.js && node --check public/app.js",
+    "test": "node --test"
   },
   "devDependencies": {
     "wrangler": "^4.0.0"

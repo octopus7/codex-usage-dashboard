@@ -1,6 +1,17 @@
+import {
+  WEEKLY_USAGE_RSS_ITEM_LIMIT,
+  WEEKLY_USAGE_RSS_QUERY,
+  buildWeeklyUsageRssDocument
+} from "./rss.js";
+
 const JSON_HEADERS = {
   "Content-Type": "application/json; charset=utf-8",
   "Cache-Control": "no-store"
+};
+
+const RSS_HEADERS = {
+  "Content-Type": "application/rss+xml; charset=utf-8",
+  "Cache-Control": "public, max-age=60"
 };
 
 const USAGE_TYPES = ["5h", "week"];
@@ -69,6 +80,10 @@ export default {
 
       if (request.method === "OPTIONS" && url.pathname.startsWith("/api/")) {
         return new Response(null, { status: 204, headers: JSON_HEADERS });
+      }
+
+      if (request.method === "GET" && url.pathname === "/rss.xml") {
+        return getWeeklyUsageRss(request, env);
       }
 
       if (url.pathname.startsWith("/api/")) {
@@ -166,6 +181,23 @@ async function routeApi(request, env, url) {
     { ok: false, error: "not_found", message: "API 경로를 찾을 수 없습니다." },
     404
   );
+}
+
+async function getWeeklyUsageRss(request, env) {
+  if (!env.DB) {
+    return new Response("Database not configured.", {
+      status: 500,
+      headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" }
+    });
+  }
+
+  const result = await env.DB.prepare(WEEKLY_USAGE_RSS_QUERY)
+    .bind(WEEKLY_USAGE_RSS_ITEM_LIMIT)
+    .all();
+  const rows = result.results || [];
+  const rss = buildWeeklyUsageRssDocument(rows, request.url);
+
+  return new Response(rss, { headers: RSS_HEADERS });
 }
 
 async function getUsage(env, url) {

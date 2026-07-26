@@ -17,6 +17,17 @@ https://codex-usage-dashboard.<계정>.workers.dev
 
 관리자 비밀번호를 Worker Secret으로 미리 등록하지 않습니다. 최초 설정 API가 D1에 비밀번호 해시를 저장합니다.
 
+## 주간 사용량 RSS
+
+```http
+GET /rss.xml
+```
+
+인증 없이 주간(`week`) 사용량의 최신 변경 50건을 RSS 2.0으로 반환합니다.
+각 항목의 `title`과 `description`은 `42.5` 같은 수치만 포함합니다. 연속된 기록의
+수치가 이전 기록과 같으면 피드에서 생략하며, `5h` 데이터와 출처·메모·메타데이터는
+포함하지 않습니다.
+
 ## 서비스 상태
 
 ```http
