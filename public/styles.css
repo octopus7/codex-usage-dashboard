@@ -726,6 +726,46 @@ h2 {
   gap: 12px;
 }
 
+.chart-mode-toggle {
+  display: inline-grid;
+  width: 42px;
+  min-width: 42px;
+  height: 38px;
+  place-items: center;
+  margin-left: auto;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.chart-mode-toggle:hover {
+  border-color: var(--border-strong);
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.chart-mode-toggle.active {
+  border-color: var(--border-strong);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.chart-mode-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.chart-mode-icon {
+  width: 23px;
+  height: 23px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
 .chart-info-wrap {
   position: relative;
   display: inline-flex;
@@ -1174,6 +1214,10 @@ dialog::backdrop {
   .chart-controls {
     justify-content: space-between;
   }
+
+  .chart-mode-toggle {
+    margin-left: 0;
+  }
 }
 
 @media (max-width: 680px) {
@@ -1221,6 +1265,10 @@ dialog::backdrop {
   .chart-controls {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .chart-mode-toggle {
+    align-self: flex-end;
   }
 
   .series-legend {

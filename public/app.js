@@ -1,5 +1,6 @@
 const LANGUAGE_STORAGE_KEY = "codex-dashboard-language";
 const THEME_STORAGE_KEY = "codex-dashboard-theme";
+const SMOOTH_CHART_COOKIE = "codex-dashboard-smooth-chart";
 const SUPPORTED_LANGUAGES = ["en", "ko", "ja"];
 const SUPPORTED_THEMES = ["midnight", "ocean", "forest", "pink-beige", "amber"];
 const LANGUAGE_LOCALES = { en: "en-US", ko: "ko-KR", ja: "ja-JP" };
@@ -27,6 +28,19 @@ const TRANSLATIONS = {
 
 TRANSLATIONS.ko.refresh = "새로고침";
 TRANSLATIONS.ja.refresh = "更新";
+
+TRANSLATIONS.en.useSmoothChart = "Switch to smooth graph";
+TRANSLATIONS.en.useStepChart = "Switch to step graph";
+TRANSLATIONS.en.chartAriaSmooth = "Codex 5-hour and weekly usage smooth time-series chart";
+TRANSLATIONS.en.chartDescriptionSmooth = "Measurements are connected with a smooth curve; decreases are treated as resets and split the line.";
+TRANSLATIONS.ko.useSmoothChart = "곡선형 그래프로 전환";
+TRANSLATIONS.ko.useStepChart = "계단형 그래프로 전환";
+TRANSLATIONS.ko.chartAriaSmooth = "5시간 및 주간 Codex 사용량 곡선형 시계열 차트";
+TRANSLATIONS.ko.chartDescriptionSmooth = "측정값을 부드러운 곡선으로 연결하며, 값이 감소하면 리셋으로 판단해 선을 끊습니다.";
+TRANSLATIONS.ja.useSmoothChart = "滑らかなグラフに切り替え";
+TRANSLATIONS.ja.useStepChart = "階段グラフに切り替え";
+TRANSLATIONS.ja.chartAriaSmooth = "Codex 5時間および週間使用量の滑らかな時系列グラフ";
+TRANSLATIONS.ja.chartDescriptionSmooth = "測定値を滑らかな曲線で結び、値が減少した場合はリセットとして線を分割します。";
 
 TRANSLATIONS.en.swipePrevious = "Use the left arrow to view the previous period";
 TRANSLATIONS.ko.swipePrevious = "왼쪽 이전 버튼으로 이전 기간을 확인할 수 있습니다";
@@ -101,6 +115,7 @@ const state = {
   page: initialPage,
   metric: initialMetric,
   visibleTypes: initialVisibleTypes,
+  smoothChart: readCookie(SMOOTH_CHART_COOKIE) === "1",
   loading: false,
   tableExpanded: false,
   tablePage: 0,
@@ -137,6 +152,7 @@ const elements = {
   chart: document.querySelector("#usage-chart"),
   chartTooltip: document.querySelector("#chart-tooltip"),
   chartEmpty: document.querySelector("#chart-empty"),
+  chartModeToggle: document.querySelector("#chart-mode-toggle"),
   seriesLegend: document.querySelector("#series-legend"),
   tableBody: document.querySelector("#usage-table-body"),
   tablePanel: document.querySelector(".table-panel"),
@@ -278,6 +294,7 @@ function applyLanguage() {
   document.querySelector('[data-series-toggle="week"] i')?.classList.add("series-dot", "series-dot-week");
   document.querySelector('[data-series-toggle="week"]')?.append(t("weekly"));
   document.querySelector("#usage-chart")?.setAttribute("aria-label", t("chartAria"));
+  updateChartModeToggle();
   setText("#chart-empty", t("chartEmpty"));
   setText(".table-panel h2", t("tableTitle"));
   setText("#table-description", t("tableDescription"));
@@ -421,6 +438,13 @@ function bindEvents() {
   elements.previousButton.addEventListener("click", navigateOlder);
   elements.nextButton.addEventListener("click", navigateNewer);
   elements.refreshButton.addEventListener("click", () => loadUsage());
+
+  elements.chartModeToggle.addEventListener("click", () => {
+    state.smoothChart = !state.smoothChart;
+    writeCookie(SMOOTH_CHART_COOKIE, state.smoothChart ? "1" : "0");
+    updateChartModeToggle();
+    renderChart();
+  });
 
 
   elements.seriesLegend.addEventListener("click", (event) => {
@@ -993,8 +1017,11 @@ function renderChart() {
     if (!points.length) continue;
 
     const suffix = SERIES_META[usageType].cssSuffix;
+    const path = state.smoothChart
+      ? createSmoothResetPath(points, width - padding.right)
+      : createStepResetPath(points, width - padding.right);
     seriesMarkup.push(
-      `<path class="chart-line chart-line-${suffix}" d="${createStepResetPath(points, width - padding.right)}"></path>`
+      `<path class="chart-line chart-line-${suffix}" d="${path}"></path>`
     );
 
     if (showEventDots) {
@@ -1083,6 +1110,65 @@ function createStepResetPath(points, endX) {
   const last = points[points.length - 1];
   if (last.x < endX) parts.push(`L ${endX.toFixed(2)} ${last.y.toFixed(2)}`);
   return parts.join(" ");
+}
+
+function createSmoothResetPath(points, endX) {
+  if (!points.length) return "";
+
+  const segments = [];
+  let segment = [points[0]];
+  for (const point of points.slice(1)) {
+    if (isUsageReset(segment[segment.length - 1], point)) {
+      segments.push(segment);
+      segment = [point];
+    } else {
+      segment.push(point);
+    }
+  }
+  segments.push(segment);
+
+  const parts = segments.flatMap(createMonotoneCurveSegment);
+  const last = points[points.length - 1];
+  if (last.x < endX) parts.push(`L ${endX.toFixed(2)} ${last.y.toFixed(2)}`);
+  return parts.join(" ");
+}
+
+function createMonotoneCurveSegment(points) {
+  const first = points[0];
+  const parts = [`M ${first.x.toFixed(2)} ${first.y.toFixed(2)}`];
+  if (points.length === 1) return parts;
+
+  const slopes = points.slice(0, -1).map((point, index) => {
+    const next = points[index + 1];
+    const deltaX = next.x - point.x;
+    return deltaX > 0 ? (next.y - point.y) / deltaX : 0;
+  });
+  const tangents = points.map((_, index) => {
+    if (index === 0) return slopes[0];
+    if (index === points.length - 1) return slopes[slopes.length - 1];
+    const before = slopes[index - 1];
+    const after = slopes[index];
+    if (before === 0 || after === 0 || Math.sign(before) !== Math.sign(after)) return 0;
+    return (2 * before * after) / (before + after);
+  });
+
+  for (let index = 0; index < points.length - 1; index += 1) {
+    const current = points[index];
+    const next = points[index + 1];
+    const deltaX = next.x - current.x;
+    if (deltaX <= 0) {
+      parts.push(`L ${next.x.toFixed(2)} ${next.y.toFixed(2)}`);
+      continue;
+    }
+    const handle = deltaX / 3;
+    parts.push(
+      `C ${(current.x + handle).toFixed(2)} ${(current.y + tangents[index] * handle).toFixed(2)} ` +
+      `${(next.x - handle).toFixed(2)} ${(next.y - tangents[index + 1] * handle).toFixed(2)} ` +
+      `${next.x.toFixed(2)} ${next.y.toFixed(2)}`
+    );
+  }
+
+  return parts;
 }
 
 function isUsageReset(previous, current) {
@@ -1357,6 +1443,20 @@ function updateLegendButtons() {
   });
 }
 
+function updateChartModeToggle() {
+  if (!elements.chartModeToggle) return;
+  const smooth = state.smoothChart;
+  const description = t(smooth ? "chartDescriptionSmooth" : "chartDescription");
+  elements.chartModeToggle.classList.toggle("active", smooth);
+  elements.chartModeToggle.setAttribute("aria-pressed", String(smooth));
+  elements.chartModeToggle.setAttribute("aria-label", t(smooth ? "useStepChart" : "useSmoothChart"));
+  elements.chartModeToggle.querySelector(".chart-mode-icon-step").hidden = smooth;
+  elements.chartModeToggle.querySelector(".chart-mode-icon-smooth").hidden = !smooth;
+  elements.chart.setAttribute("aria-label", t(smooth ? "chartAriaSmooth" : "chartAria"));
+  if (elements.chartInfoButton) elements.chartInfoButton.setAttribute("aria-label", description);
+  if (elements.chartInfoTooltip) elements.chartInfoTooltip.textContent = description;
+}
+
 function setControlsDisabled(disabled) {
   elements.previousButton.disabled = disabled;
   elements.nextButton.disabled = disabled || state.page === 0;
@@ -1468,6 +1568,17 @@ function toLocalDateTimeInput(date) {
 
 function clamp(value, minimum, maximum) {
   return Math.min(maximum, Math.max(minimum, value));
+}
+
+function readCookie(name) {
+  const prefix = `${encodeURIComponent(name)}=`;
+  const entry = document.cookie.split(";").map((item) => item.trim()).find((item) => item.startsWith(prefix));
+  return entry ? decodeURIComponent(entry.slice(prefix.length)) : null;
+}
+
+function writeCookie(name, value) {
+  const secure = location.protocol === "https:" ? "; Secure" : "";
+  document.cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}; Path=/; Max-Age=31536000; SameSite=Lax${secure}`;
 }
 
 function escapeHtml(value) {

@@ -94,6 +94,14 @@
             <h2>5시간 · 주간 사용량 추이</h2>
             <p>다음 측정값이 올 때까지 값을 평탄하게 유지하고, 값이 감소하면 리셋으로 판단해 해당 구간의 선을 끊습니다.</p>
           </div>
+          <button id="chart-mode-toggle" class="chart-mode-toggle" type="button" aria-pressed="false" aria-label="곡선형 그래프로 전환">
+            <svg class="chart-mode-icon chart-mode-icon-step" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M2 18h6v-6h6V6h8"></path>
+            </svg>
+            <svg class="chart-mode-icon chart-mode-icon-smooth" viewBox="0 0 24 24" aria-hidden="true" hidden>
+              <path d="M2 18c4 0 4-7 8-7s4-5 12-5"></path>
+            </svg>
+          </button>
           <div class="chart-controls">
             <div id="series-legend" class="series-legend" role="group" aria-label="표시 시리즈">
               <button class="legend-button active" type="button" data-series-toggle="5h" aria-pressed="true">
