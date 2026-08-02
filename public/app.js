@@ -1010,7 +1010,7 @@ function renderChart() {
   const totalRealPoints = Object.values(geometrySeries)
     .flat()
     .filter((point) => !point.synthetic).length;
-  const showEventDots = totalRealPoints <= 160;
+  const showEventDots = !state.smoothChart && totalRealPoints <= 160;
 
   for (const usageType of selectedTypes) {
     const points = geometrySeries[usageType];
