@@ -1,22 +1,24 @@
-# Codex 5h · Week 사용량 대시보드
+**English** | [한국어](README.KO.md) | [日本語](README.JA.md)
 
-Cloudflare 서비스만 사용해 구성한 Codex 사용량 대시보드입니다.
+# Codex 5h · Week Usage Dashboard
 
-5시간 사용량과 주간 사용량은 **서로 독립된 시계열**로 D1에 저장됩니다. 두 값은 다른 시각과 다른 주기로 전송할 수 있으며, 화면에서는 같은 시간축에 두 선으로 함께 표시됩니다.
+A Codex usage dashboard built entirely with Cloudflare services.
 
-- 증가하거나 같은 값: 다음 기록 시점까지 이전 값을 평탄하게 유지
-- 값 감소: 사용량 리셋으로 판단하고 이전 점과 새 점 사이의 선을 끊음
-- 마지막 기록 이후: 선택 범위 끝까지 마지막 값을 수평 유지
-- Y축: 좌우 모두 `0% · 25% · 50% · 75% · 100%` 고정
+The 5-hour and weekly usage values are stored in D1 as **independent time series**. They can be sent at different times and intervals, while the dashboard displays both lines on the same time axis.
 
-관리 기능에는 사전 `ADMIN_TOKEN`이 필요하지 않습니다. 처음 배포된 빈 D1에서는 비밀번호 설정 창이 자동으로 열립니다. 입력한 비밀번호의 **PBKDF2-SHA-256 해시와 salt만 D1에 저장**되며, 이후에는 관리자 로그인과 HttpOnly 세션 쿠키를 사용합니다.
+- Increasing or unchanged values: hold the previous value flat until the next record
+- Decreasing values: treat as a usage reset and break the line between the old and new points
+- After the last record: extend the last value horizontally to the end of the selected range
+- Y-axis: fixed at `0% · 25% · 50% · 75% · 100%` on both sides
 
-## 구성
+Administrative features do not require a preconfigured `ADMIN_TOKEN`. On the first deployment with an empty D1 database, the password setup dialog opens automatically. Only a **PBKDF2-SHA-256 hash and salt of the password are stored in D1**; subsequent access uses administrator login and an HttpOnly session cookie.
+
+## Architecture
 
 ```text
-외부 수집기
-  ├─ 5h 변경 시 POST /api/usage
-  └─ week 변경 시 POST /api/usage
+External collector
+  ├─ POST /api/usage when 5h changes
+  └─ POST /api/usage when week changes
               │ Bearer INGEST_TOKEN
               ▼
 Cloudflare Worker API
@@ -27,53 +29,50 @@ Cloudflare D1
   ├─ admin_sessions
   └─ admin_login_attempts
 
-브라우저
+Browser
   ├─ Workers Static Assets
-  ├─ 공개 조회와 5h·week 동시 그래프
-  └─ 비밀번호 로그인 후 수동 추가·삭제
+  ├─ Public history and combined 5h/week chart
+  └─ Manual add/delete after password login
 
-RSS 리더
-  └─ GET /rss.xml → week 값이 실제로 변경된 시점만 수신
+RSS reader
+  └─ GET /rss.xml → receive only actual changes to the week value
 ```
 
-사용 서비스:
+Services used:
 
-- **Workers Static Assets**: HTML, CSS, JavaScript
-- **Cloudflare Worker**: 조회·수집·관리자 인증·추가·삭제 API
-- **Cloudflare D1**: 사용량, 비밀번호 해시, 관리자 세션 저장
+- **Workers Static Assets**: HTML, CSS, and JavaScript
+- **Cloudflare Worker**: query, ingestion, administrator authentication, add, and delete APIs
+- **Cloudflare D1**: usage data, password hashes, and administrator sessions
 
-## 주요 기능
+## Features
 
-- 외부 수집용 `POST /api/usage`
-- 주간 사용량 변경값 전용 `GET /rss.xml`
-- `5h`와 `week`를 서로 다른 시점에 단독 전송
-- 시간 범위: **1시간, 6시간, 12시간, 1일, 2일, 1주, 2주, 4주**
-- 이전·다음 구간 이동과 모바일 좌우 스와이프
-- 5h·week 동시 계단형 그래프
-- 사용량이 감소하는 리셋 구간 자동 단절
-- 사용률(%) 전용 그래프
-- 범례에서 각 선 표시·숨김
-- `externalId`와 `Idempotency-Key`를 이용한 중복 방지
-- 최초 접속 시 관리자 비밀번호 설정
-- HttpOnly·SameSite 세션 쿠키
-- 익명 사용자에게 수동 추가 버튼, 관리 열, 삭제 버튼을 노출하지 않음
-- 익명 수동 추가·삭제 API 요청도 `401`로 차단
-- 비밀번호 로그인 5회 실패 시 15분 잠금
+- `POST /api/usage` for external ingestion
+- `GET /rss.xml` dedicated to weekly usage changes
+- Send `5h` and `week` independently at different times
+- Time ranges: **1 hour, 6 hours, 12 hours, 1 day, 2 days, 1 week, 2 weeks, 4 weeks**
+- Previous/next range navigation and mobile horizontal swipe
+- Combined step-style chart for 5h and week
+- Automatic line breaks across usage-reset intervals
+- Percentage-only usage chart
+- Show or hide each line from the legend
+- Deduplication using `externalId` and `Idempotency-Key`
+- Administrator password setup on first access
+- HttpOnly and SameSite session cookies
+- Manual add button, management column, and delete buttons are hidden from anonymous users
+- Anonymous manual add/delete API requests are also rejected with `401`
+- 15-minute lockout after five failed password logins
 
-## 주간 사용량 RSS
+## Weekly Usage RSS
 
-RSS 리더에는 다음 주소를 등록합니다.
+Add the following URL to your RSS reader:
 
 ```text
-https://<대시보드 주소>/rss.xml
+https://<dashboard-address>/rss.xml
 ```
 
-피드에는 `week` 사용량의 최신 변경 50건만 포함됩니다. 각 항목의 제목과 설명에는
-`42.5`처럼 수치만 들어가며, 출처·메모·메타데이터와 `5h` 사용량은 포함되지 않습니다.
-이전 기록과 같은 수치가 연속 저장되어 있어도 해당 기록은 생략합니다. 값이 달라졌다가
-다시 이전 수치로 돌아온 기록은 실제 변경이므로 포함됩니다.
+The feed contains only the latest 50 changes to `week` usage. Each item's title and description contain only a number such as `42.5`; source, note, metadata, and `5h` usage are excluded. Consecutive records with the same value as the preceding record are omitted. A value that changes and later returns to an earlier value is included because it is an actual change.
 
-## 프로젝트 구조
+## Project Structure
 
 ```text
 .
@@ -92,23 +91,25 @@ https://<대시보드 주소>/rss.xml
 │   ├── send_usage.py
 │   └── send_usage.sh
 ├── docs/
-│   └── API.md
+│   ├── API.md
+│   ├── API.KO.md
+│   └── API.JA.md
 ├── .dev.vars.example
 ├── package.json
 ├── wrangler.example.jsonc
-└── wrangler.jsonc  # 로컬에서 생성, Git 제외
+└── wrangler.jsonc  # generated locally, excluded from Git
 ```
 
-## 준비물
+## Prerequisites
 
-- Cloudflare 계정
-- Node.js 22 이상
+- A Cloudflare account
+- Node.js 22 or later
 - npm
-- Cloudflare 계정에 Worker와 D1을 생성할 권한
+- Permission to create Workers and D1 databases in the Cloudflare account
 
-## 새로 설치하기
+## Fresh Installation
 
-### 1. 압축 해제와 패키지 설치
+### 1. Extract the archive and install packages
 
 ```bash
 unzip codex-usage-dashboard-repository.zip
@@ -118,27 +119,27 @@ cp wrangler.example.jsonc wrangler.jsonc
 npm install
 ```
 
-### 2. Cloudflare 로그인
+### 2. Log in to Cloudflare
 
 ```bash
 npx wrangler login
 ```
 
-### 3. D1 생성과 바인딩 추가
+### 3. Create D1 and add the binding
 
 ```bash
 npm run setup:db
 ```
 
-이 명령은 다음 설정으로 D1을 생성하고 `wrangler.jsonc`에 바인딩을 추가합니다.
+This command creates D1 with the following settings and adds its binding to `wrangler.jsonc`:
 
 ```text
-데이터베이스 이름: codex-usage-db
-Worker 바인딩: DB
-위치 힌트: apac
+Database name: codex-usage-db
+Worker binding: DB
+Location hint: apac
 ```
 
-완료 후 `wrangler.jsonc`에는 다음과 비슷한 설정이 추가됩니다.
+After completion, `wrangler.jsonc` contains a configuration similar to this:
 
 ```jsonc
 "d1_databases": [
@@ -150,13 +151,13 @@ Worker 바인딩: DB
 ]
 ```
 
-### 4. 운영 D1 마이그레이션
+### 4. Migrate the production D1 database
 
 ```bash
 npm run db:migrate:remote
 ```
 
-새 데이터베이스에는 다음 마이그레이션이 순서대로 적용됩니다.
+The following migrations are applied to a new database in order:
 
 ```text
 0001_initial.sql
@@ -165,90 +166,87 @@ npm run db:migrate:remote
 0004_percent_only_usage.sql
 ```
 
-### 5. 최초 배포
+### 5. Deploy for the first time
 
 ```bash
 npm run deploy
 ```
 
-출력되는 `workers.dev` 주소를 기록합니다.
+Save the `workers.dev` URL printed by the command.
 
-### 6. 외부 수집 토큰 등록
+### 6. Register the external ingestion token
 
-관리자 로그인 비밀번호와 별개로, 외부 수집기가 데이터를 넣을 때 사용할 Worker Secret을 등록합니다.
+Separate from the administrator login password, register a Worker Secret for external collectors to submit data:
 
 ```bash
 openssl rand -hex 32
 npx wrangler secret put INGEST_TOKEN
 ```
 
-생성한 토큰은 외부 수집기에만 보관하고 HTML이나 `public/app.js`에 넣지 마세요.
+Keep the generated token only in the external collector. Do not put it in HTML or `public/app.js`.
 
-**`ADMIN_TOKEN`은 사용하지 않습니다.**
+**`ADMIN_TOKEN` is not used.**
 
-### 7. 최초 관리자 비밀번호 설정
+### 7. Set the initial administrator password
 
-배포된 대시보드 주소를 엽니다.
+Open the deployed dashboard URL.
 
-1. D1에 관리자 비밀번호가 없으면 설정 창이 자동으로 열립니다.
-2. 10자 이상의 비밀번호를 두 번 입력합니다.
-3. **비밀번호 저장**을 누릅니다.
-4. 비밀번호 해시가 D1에 저장되고 현재 브라우저는 자동 로그인됩니다.
-5. 로그인 후에만 **사용량 추가**, 표의 **관리** 열과 **삭제** 버튼이 나타납니다.
+1. If D1 does not contain an administrator password, the setup dialog opens automatically.
+2. Enter a password of at least 10 characters twice.
+3. Select **Save password**.
+4. The password hash is stored in D1 and the current browser is logged in automatically.
+5. Only after login do **Add usage**, the table's **Manage** column, and **Delete** buttons appear.
 
-중요: 최초 비밀번호 설정에는 사전 관리자 비밀키가 없습니다. 새 배포에서는 먼저 설정 API를 호출한 사람이 관리자가 될 수 있으므로 **배포 직후 직접 접속해 바로 설정**하세요. 공개 전에 Cloudflare Access로 임시 보호하는 방식도 사용할 수 있습니다.
+Important: initial password setup has no pre-shared administrator secret. On a new deployment, the first person to call the setup API can become the administrator, so **open the dashboard and configure it immediately after deployment**. You can also protect it temporarily with Cloudflare Access before making it public.
 
-## 관리자 인증 동작
+## Administrator Authentication Behavior
 
-### 익명 사용자
+### Anonymous users
 
-- 그래프와 사용량 기록 조회 가능
-- 관리자 로그인 버튼 표시
-- 사용량 추가 버튼 숨김
-- 표의 관리 열 숨김
-- 삭제 버튼을 DOM에 생성하지 않음
-- 수동 추가·삭제 API를 직접 호출해도 `401` 반환
+- Can view charts and usage history
+- See the administrator login button
+- Do not see the add-usage button
+- Do not see the table's management column
+- Delete buttons are not created in the DOM
+- Direct calls to manual add/delete APIs return `401`
 
-### 관리자
+### Administrators
 
-- 비밀번호 로그인 성공 시 HttpOnly 세션 쿠키 발급
-- 세션 유효시간 7일
-- `SameSite=Strict`, HTTPS 배포에서는 `Secure` 적용
-- D1에는 원본 세션 토큰 대신 SHA-256 해시 저장
-- 로그아웃 시 해당 세션을 D1에서 삭제하고 쿠키 제거
+- Receive an HttpOnly session cookie after a successful password login
+- Session lifetime is 7 days
+- `SameSite=Strict`, with `Secure` applied on HTTPS deployments
+- D1 stores a SHA-256 hash instead of the raw session token
+- Logout deletes the session from D1 and removes the cookie
 
-### 로그인 실패 제한
+### Failed login limit
 
-같은 클라이언트에서 15분 안에 비밀번호를 5회 틀리면 15분 동안 로그인이 잠깁니다. 성공적으로 로그인하면 실패 기록은 삭제됩니다.
+Five incorrect passwords from the same client within 15 minutes lock login for 15 minutes. A successful login clears the failure records.
 
-## Raspberry Pi 무인 수집 엔드포인트
+## Unattended Raspberry Pi Ingestion Endpoint
 
-`POST /api/usagefrompi`는 `POST /api/usage`와 같은 데이터 형식과 저장 로직을 사용하지만
-인증 없이 데이터를 받습니다. 기본값은 비활성화이며, GitHub Actions의 production environment
-variable `USAGEFROMPI_ENABLED`를 `true`로 설정한 배포에서만 활성화됩니다. 비활성화 상태에서는
-`404`를 반환합니다.
+`POST /api/usagefrompi` uses the same data format and storage logic as `POST /api/usage`, but accepts data without authentication. It is disabled by default and is enabled only in deployments where the GitHub Actions production environment variable `USAGEFROMPI_ENABLED` is set to `true`. It returns `404` while disabled.
 
 ```http
 POST /api/usagefrompi
 Content-Type: application/json
 ```
 
-## 외부에서 독립 전송
+## Independent External Submissions
 
-환경변수:
+Environment variables:
 
 ```bash
-export DASHBOARD_URL="https://codex-usage-dashboard.<계정>.workers.dev"
-export INGEST_TOKEN="<Worker Secret으로 설정한 값>"
+export DASHBOARD_URL="https://codex-usage-dashboard.<account>.workers.dev"
+export INGEST_TOKEN="<value configured as the Worker Secret>"
 ```
 
-### 5시간 사용량만 전송
+### Send only 5-hour usage
 
 ```bash
 bash examples/send_usage.sh 5h 42.5
 ```
 
-전송 예시:
+Example payload:
 
 ```json
 {
@@ -260,7 +258,7 @@ bash examples/send_usage.sh 5h 42.5
 }
 ```
 
-### 주간 사용량을 다른 시점에 전송
+### Send weekly usage at another time
 
 ```bash
 bash examples/send_usage.sh week 68.2
@@ -276,16 +274,16 @@ bash examples/send_usage.sh week 68.2
 }
 ```
 
-두 요청의 전송 시각과 주기는 서로 독립적입니다.
+The submission times and intervals of these two requests are independent.
 
-### Python 예제
+### Python example
 
 ```bash
 python3 examples/send_usage.py 5h 42.5
 python3 examples/send_usage.py week 68.2
 ```
 
-### curl 직접 호출
+### Direct curl request
 
 ```bash
 curl --fail-with-body \
@@ -302,11 +300,11 @@ curl --fail-with-body \
   }'
 ```
 
-전체 API 규격은 ZIP 안의 `docs/API.md`를 참고하세요.
+See [`docs/API.md`](docs/API.md) for the complete API specification.
 
-## 전송 데이터 형식
+## Submission Data Format
 
-사용률 퍼센트만 저장합니다. `usedPercent`는 필수이며 `0` 이상 `100` 이하만 허용합니다. 한도, 사용량 원본, 토큰, 비용 필드는 DB에 저장하지 않습니다.
+Only the usage percentage is stored. `usedPercent` is required and must be between `0` and `100`, inclusive. Limit, raw usage, token, and cost fields are not stored in the database.
 
 ```json
 {
@@ -318,52 +316,52 @@ curl --fail-with-body \
 }
 ```
 
-`usedAmount`와 `limitAmount`는 더 이상 API 입력으로 받지 않습니다. 수집기는 계산을 마친 `usedPercent`만 보내야 합니다.
+`usedAmount` and `limitAmount` are no longer accepted as API inputs. Collectors must calculate and send only `usedPercent`.
 
-## 그래프 동작
+## Chart Behavior
 
-예시:
+Example:
 
 ```text
 10:00  5h   32%
 10:37  5h   38%
 12:15  5h   47%
-13:00  5h    4%  ← 리셋
+13:00  5h    4%  ← reset
 14:00  5h   12%
 
 10:15  week 55%
 14:05  week 61%
 ```
 
-표시 원칙:
+Rendering principles:
 
 ```text
 5h    32% ╱ 38% ╱ 47%       4% ╱ 12%
-                         ↑ 감소 구간은 연결하지 않음
+                         ↑ decreasing interval is not connected
 week       55% ╱──────────────────── 61%
 ```
 
-- 이전 값보다 크거나 같은 새 값은 두 기록 시점 사이를 대각선으로 연결합니다.
-- 새 값이 이전 값보다 작으면 리셋으로 간주하고 이전 점과 새 점 사이에 선을 그리지 않습니다.
-- `usedPercent`가 감소하면 리셋으로 판단합니다.
-- 마지막 기록 뒤에는 선택 범위 끝까지 마지막 값을 수평으로 유지합니다.
-- 선택 범위 시작 전에 마지막 값이 있으면 범위 시작점의 기준값으로 사용합니다. 첫 범위 내 값이 더 낮으면 역시 연결하지 않습니다.
-- 긴 기간을 버킷으로 줄일 때도 리셋 직전 점과 감소한 새 점을 함께 보존해 단절 위치가 사라지지 않게 합니다.
+- A new value greater than or equal to the previous value is connected diagonally between the two record times.
+- If a new value is lower than the previous value, it is considered a reset and no line is drawn between the points.
+- A decrease in `usedPercent` indicates a reset.
+- After the final record, its value is held horizontally to the end of the selected range.
+- If a last value exists before the selected range, it is used as the baseline at the range start. If the first in-range value is lower, the points are not connected.
+- When long ranges are reduced into buckets, the point immediately before a reset and the decreased point are both preserved so the break remains visible.
 
-| 화면 범위 | 시리즈별 버킷 |
+| Display range | Bucket per series |
 |---|---:|
-| 1시간 | 1분 |
-| 6시간 | 5분 |
-| 12시간 | 10분 |
-| 1일 | 20분 |
-| 2일 | 30분 |
-| 1주 | 2시간 |
-| 2주 | 4시간 |
-| 4주 | 8시간 |
+| 1 hour | 1 minute |
+| 6 hours | 5 minutes |
+| 12 hours | 10 minutes |
+| 1 day | 20 minutes |
+| 2 days | 30 minutes |
+| 1 week | 2 hours |
+| 2 weeks | 4 hours |
+| 4 weeks | 8 hours |
 
-## 기존 ZIP에서 업그레이드
+## Upgrading from an Existing ZIP
 
-기존 이중 시계열 버전을 이미 배포했다면 먼저 백업합니다.
+If an earlier dual-series version is already deployed, back it up first:
 
 ```bash
 npx wrangler d1 export DB \
@@ -371,7 +369,7 @@ npx wrangler d1 export DB \
   --output=codex-usage-before-password-auth.sql
 ```
 
-새 ZIP의 파일로 프로젝트를 교체한 뒤 실행합니다.
+Replace the project with the files from the new ZIP, then run:
 
 ```bash
 npm install
@@ -379,11 +377,11 @@ npm run db:migrate:remote
 npm run deploy
 ```
 
-`0003_admin_password_sessions.sql`이 관리자 비밀번호와 세션 테이블을 추가합니다. 기존 사용량 데이터는 변경하지 않습니다.
+`0003_admin_password_sessions.sql` adds the administrator password and session tables. Existing usage data is unchanged.
 
-업그레이드 후 페이지를 열면 최초 비밀번호 설정 창이 나타납니다. 이전 버전의 `ADMIN_TOKEN`은 새 코드에서 참조하지 않습니다.
+After the upgrade, opening the page displays the initial password setup dialog. The previous version's `ADMIN_TOKEN` is not referenced by the new code.
 
-## 로컬 개발
+## Local Development
 
 ```bash
 cp .dev.vars.example .dev.vars
@@ -391,11 +389,11 @@ npm run db:migrate:local
 npm run dev
 ```
 
-`.dev.vars`에는 로컬 테스트용 `INGEST_TOKEN`만 둡니다. 로컬 D1과 운영 D1의 비밀번호·세션은 서로 독립적입니다.
+Keep only the local testing `INGEST_TOKEN` in `.dev.vars`. Passwords and sessions in local D1 and production D1 are independent.
 
-## 관리자 비밀번호를 잊은 경우
+## If You Forget the Administrator Password
 
-비밀번호 원문은 복구할 수 없습니다. 운영 D1에서 관리자 세션과 자격 증명을 삭제한 뒤 새 비밀번호를 설정합니다.
+The original password cannot be recovered. Delete the administrator sessions and credentials from production D1, then configure a new password:
 
 ```bash
 npx wrangler d1 execute DB \
@@ -407,9 +405,9 @@ npx wrangler d1 execute DB \
   --command "DELETE FROM admin_credentials WHERE id = 1"
 ```
 
-페이지를 새로 열면 최초 비밀번호 설정 창이 다시 나타납니다.
+Reopen the page to display the initial password setup dialog again.
 
-## 백업
+## Backup
 
 ```bash
 npx wrangler d1 export DB \
@@ -417,19 +415,19 @@ npx wrangler d1 export DB \
   --output=codex-usage-backup.sql
 ```
 
-## 보안 권장 사항
+## Security Recommendations
 
-- 배포 직후 관리자 비밀번호를 설정하세요.
-- 관리자 비밀번호와 `INGEST_TOKEN`을 서로 다르게 사용하세요.
-- `INGEST_TOKEN`을 정적 파일이나 Git 저장소에 넣지 마세요.
-- 외부 수집기는 `externalId` 또는 `Idempotency-Key`를 사용하세요.
-- 조회 내용도 비공개여야 한다면 Cloudflare Access를 추가하세요.
-- 삭제는 되돌릴 수 없으므로 D1을 정기적으로 백업하세요.
-- 공용 컴퓨터에서는 작업 후 반드시 로그아웃하세요.
+- Set the administrator password immediately after deployment.
+- Use different values for the administrator password and `INGEST_TOKEN`.
+- Do not put `INGEST_TOKEN` in static files or the Git repository.
+- External collectors should use `externalId` or `Idempotency-Key`.
+- Add Cloudflare Access if query results must also remain private.
+- Deletion cannot be undone, so back up D1 regularly.
+- Always log out after working on a shared computer.
 
-## 자주 쓰는 명령
+## Common Commands
 
-새 설치:
+Fresh installation:
 
 ```bash
 npm install
@@ -440,7 +438,7 @@ npm run deploy
 npx wrangler secret put INGEST_TOKEN
 ```
 
-업데이트:
+Update:
 
 ```bash
 npm install
@@ -448,32 +446,31 @@ npm run db:migrate:remote
 npm run deploy
 ```
 
-검사:
+Check:
 
 ```bash
 npm run check
 ```
 
-## 공식 문서
+## Official Documentation
 
 - Workers Static Assets: https://developers.cloudflare.com/workers/static-assets/
-- D1 시작하기: https://developers.cloudflare.com/d1/get-started/
-- D1 마이그레이션: https://developers.cloudflare.com/d1/reference/migrations/
+- D1 getting started: https://developers.cloudflare.com/d1/get-started/
+- D1 migrations: https://developers.cloudflare.com/d1/reference/migrations/
 - Workers Secrets: https://developers.cloudflare.com/workers/configuration/secrets/
 
+## Operating from a Git Repository
 
-## Git 저장소로 운영하기
+This distribution excludes `wrangler.jsonc` from Git. The file contains no secret values, but it does include the account-specific D1 `database_id`, so it remains local to prevent a new ZIP or another branch from overwriting production configuration.
 
-이 배포판은 `wrangler.jsonc`를 Git에서 제외합니다. 이 파일에는 비밀값은 없지만 계정별 D1 `database_id`가 들어가므로, 새 ZIP이나 다른 브랜치가 운영 설정을 덮지 않도록 로컬 파일로 유지합니다.
-
-최초 클론 직후:
+Immediately after the first clone:
 
 ```bash
 cp wrangler.example.jsonc wrangler.jsonc
 npm install
 ```
 
-신규 D1을 만들 때:
+To create a new D1 database:
 
 ```bash
 npm run setup:db
@@ -481,26 +478,26 @@ npm run db:migrate:remote
 npm run deploy
 ```
 
-이미 존재하는 D1에 연결할 때:
+To connect an existing D1 database:
 
 ```bash
 npx wrangler d1 list
 nano wrangler.jsonc
 ```
 
-`wrangler.jsonc`의 최상위 객체에 다음 바인딩을 넣습니다.
+Add this binding to the top-level object in `wrangler.jsonc`:
 
 ```jsonc
 "d1_databases": [
   {
     "binding": "DB",
     "database_name": "codex-usage-db",
-    "database_id": "wrangler d1 list에서 확인한 UUID"
+    "database_id": "UUID shown by wrangler d1 list"
   }
 ]
 ```
 
-연결 확인:
+Verify the connection:
 
 ```bash
 npx wrangler d1 execute DB \
@@ -508,7 +505,7 @@ npx wrangler d1 execute DB \
   --command "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;"
 ```
 
-일상적인 저장소 업데이트:
+Routine repository update:
 
 ```bash
 git pull
@@ -518,39 +515,39 @@ npm run db:migrate:remote
 npm run deploy
 ```
 
-`wrangler.jsonc`, `.dev.vars`, `.env`, `~/.config/codex-collector/env`는 커밋하지 않습니다. `INGEST_TOKEN`은 Cloudflare Worker Secret과 수집기 머신에만 저장합니다.
+Do not commit `wrangler.jsonc`, `.dev.vars`, `.env`, or `~/.config/codex-collector/env`. Store `INGEST_TOKEN` only as a Cloudflare Worker Secret and on the collector machine.
 
-## Raspberry Pi / SSH에서 Wrangler 로그인
+## Wrangler Login from Raspberry Pi / SSH
 
-라즈베리파이에서 실행:
+Run on the Raspberry Pi:
 
 ```bash
 npx wrangler login
 ```
 
-다른 PC 브라우저에서 승인한 뒤 `localhost` 콜백 페이지가 열리지 않으면, 브라우저 주소창의 콜백 URL 전체를 복사합니다.
+If the `localhost` callback page does not open after approval in a browser on another PC, copy the entire callback URL from the browser's address bar.
 
-예:
+Example:
 
 ```text
 http://localhost:8976/oauth/callback?code=...&state=...
 ```
 
-라즈베리파이의 두 번째 SSH 창에서 그대로 호출합니다.
+Call it unchanged from a second SSH window on the Raspberry Pi:
 
 ```bash
 curl 'http://localhost:8976/oauth/callback?code=...&state=...'
 ```
 
-로그인 확인:
+Verify login:
 
 ```bash
 npx wrangler whoami
 ```
 
-## 기존 배포 업데이트
+## Updating an Existing Deployment
 
-기존 프로젝트에서 코드만 교체하거나 Git으로 업데이트한 뒤, 운영 중인 `wrangler.jsonc`를 그대로 유지하고 실행합니다.
+After replacing only the code in an existing project or updating it through Git, preserve the production `wrangler.jsonc` and run:
 
 ```bash
 npm install
@@ -559,28 +556,28 @@ npm run db:migrate:remote
 npm run deploy
 ```
 
-`0004_percent_only_usage.sql`은 기존 `used_amount`/`limit_amount` 데이터를 `used_percent`로 변환한 후 불필요한 DB 열을 제거합니다.
+`0004_percent_only_usage.sql` converts existing `used_amount`/`limit_amount` data to `used_percent`, then removes the unnecessary database columns.
 
-배포 확인:
+Verify the deployment:
 
 ```bash
 source ~/.config/codex-collector/env
 curl -i "$DASHBOARD_URL/api/health"
 ```
 
-`HTTP 200`과 `"ok": true`가 나오면 정상입니다. API가 500이면:
+The deployment is healthy if it returns `HTTP 200` and `"ok": true`. If the API returns 500, run:
 
 ```bash
 npx wrangler tail
 ```
 
-을 실행한 상태에서 다른 터미널에서 `/api/health`를 다시 호출해 실제 예외를 확인합니다.
+With that command running, call `/api/health` again from another terminal to inspect the actual exception.
 
-## 그래프 축과 연결 규칙
+## Chart Axes and Connection Rules
 
-- Y축 범위는 데이터와 관계없이 항상 `0%`부터 `100%`
-- 보조 눈금은 `25%`, `50%`, `75%`
-- 같은 눈금을 그래프 왼쪽과 오른쪽에 모두 표시
-- 값이 증가하거나 같으면 다음 측정점까지 이전 값을 평탄하게 유지
-- 다음 측정값이 이전보다 작으면 리셋으로 간주하여 그 구간은 연결하지 않음
-- `5h`와 `week`의 리셋 여부는 각 시계열에서 독립적으로 판단
+- The Y-axis always ranges from `0%` to `100%`, regardless of the data
+- Auxiliary grid lines are at `25%`, `50%`, and `75%`
+- The same labels appear on both the left and right sides of the chart
+- When a value increases or remains unchanged, hold the previous value flat until the next measurement
+- When the next measurement is lower, treat it as a reset and do not connect that interval
+- Reset detection for `5h` and `week` is independent within each time series

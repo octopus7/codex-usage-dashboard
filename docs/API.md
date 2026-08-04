@@ -1,34 +1,33 @@
-# API 사용법
+**English** | [한국어](API.KO.md) | [日本語](API.JA.md)
 
-기본 주소 예시:
+# API Guide
+
+Example base URL:
 
 ```text
-https://codex-usage-dashboard.<계정>.workers.dev
+https://codex-usage-dashboard.<account>.workers.dev
 ```
 
-## 인증 구분
+## Authentication by Purpose
 
-| 용도 | 인증 방식 |
+| Purpose | Authentication method |
 |---|---|
-| 공개 기간 조회 | 인증 없음 |
-| 외부 수집 `POST /api/usage` | `INGEST_TOKEN` Bearer 토큰 |
-| 관리자 상태·설정·로그인·로그아웃 | 같은 출처의 브라우저 요청 |
-| 관리자 수동 추가·삭제 | HttpOnly 관리자 세션 쿠키 |
+| Public range query | None |
+| External ingestion `POST /api/usage` | `INGEST_TOKEN` Bearer token |
+| Administrator status, setup, login, and logout | Same-origin browser request |
+| Administrator manual add and delete | HttpOnly administrator session cookie |
 
-관리자 비밀번호를 Worker Secret으로 미리 등록하지 않습니다. 최초 설정 API가 D1에 비밀번호 해시를 저장합니다.
+The administrator password is not preregistered as a Worker Secret. The initial setup API stores its password hash in D1.
 
-## 주간 사용량 RSS
+## Weekly Usage RSS
 
 ```http
 GET /rss.xml
 ```
 
-인증 없이 주간(`week`) 사용량의 최신 변경 50건을 RSS 2.0으로 반환합니다.
-각 항목의 `title`과 `description`은 `42.5` 같은 수치만 포함합니다. 연속된 기록의
-수치가 이전 기록과 같으면 피드에서 생략하며, `5h` 데이터와 출처·메모·메타데이터는
-포함하지 않습니다.
+Returns the latest 50 changes in weekly (`week`) usage as RSS 2.0 without authentication. Each item's `title` and `description` contain only a number such as `42.5`. If a consecutive record has the same value as the preceding record, it is omitted from the feed. `5h` data, source, note, and metadata are not included.
 
-## 서비스 상태
+## Service Health
 
 ```http
 GET /api/health
@@ -44,15 +43,15 @@ GET /api/health
 }
 ```
 
-## 관리자 인증 API
+## Administrator Authentication API
 
-### 상태 확인
+### Check status
 
 ```http
 GET /api/admin/status
 ```
 
-최초 상태:
+Initial state:
 
 ```json
 {
@@ -64,69 +63,69 @@ GET /api/admin/status
 }
 ```
 
-로그인 상태에서는 `configured`와 `authenticated`가 모두 `true`입니다.
+When logged in, both `configured` and `authenticated` are `true`.
 
-### 최초 비밀번호 설정
+### Set the initial password
 
-관리자 비밀번호가 아직 없을 때 한 번만 성공합니다.
+This succeeds only once, while no administrator password exists.
 
 ```http
 POST /api/admin/setup
 Content-Type: application/json
-Origin: https://현재-대시보드-주소
+Origin: https://current-dashboard-address
 ```
 
 ```json
 {
-  "password": "10자 이상의 비밀번호"
+  "password": "a password of at least 10 characters"
 }
 ```
 
-성공 시 비밀번호 해시를 저장하고 바로 관리자 세션 쿠키를 발급합니다. 비밀번호 원문은 D1에 저장하지 않습니다.
+On success, the API stores the password hash and immediately issues an administrator session cookie. The original password is not stored in D1.
 
-이미 설정된 경우 `409 admin_already_configured`를 반환합니다.
+If a password is already configured, it returns `409 admin_already_configured`.
 
-### 로그인
+### Log in
 
 ```http
 POST /api/admin/login
 Content-Type: application/json
-Origin: https://현재-대시보드-주소
+Origin: https://current-dashboard-address
 ```
 
 ```json
 {
-  "password": "설정한 비밀번호"
+  "password": "the configured password"
 }
 ```
 
-성공하면 `codex_admin_session` HttpOnly 쿠키가 발급됩니다. 세션은 7일간 유효합니다.
+On success, a `codex_admin_session` HttpOnly cookie is issued. The session is valid for 7 days.
 
-15분 안에 5번 실패하면 15분간 `429 login_rate_limited` 응답을 반환합니다.
+After five failures within 15 minutes, the API returns `429 login_rate_limited` for 15 minutes.
 
-### 로그아웃
+### Log out
 
 ```http
 POST /api/admin/logout
 Cookie: codex_admin_session=...
-Origin: https://현재-대시보드-주소
+Origin: https://current-dashboard-address
 ```
 
-해당 세션을 D1에서 삭제하고 쿠키를 만료시킵니다.
+Deletes the session from D1 and expires the cookie.
 
-## 기간 조회
+## Range Query
 
 ```http
 GET /api/usage?start=1784300400&end=1784386800&bucket=1200
 ```
 
-| 쿼리 | 설명 |
+| Query parameter | Description |
 |---|---|
-| `start` | 조회 시작 Unix timestamp 초, 포함 |
-| `end` | 조회 종료 Unix timestamp 초, 미포함 |
-| `bucket` | 차트 다운샘플링 버킷 크기 초. `0`이면 원본 |
+| `start` | Query start as a Unix timestamp in seconds, inclusive |
+| `end` | Query end as a Unix timestamp in seconds, exclusive |
+| `bucket` | Chart downsampling bucket size in seconds; `0` returns raw data |
 
-응답 예시:
+Example response:
 
 ```json
 {
@@ -159,39 +158,36 @@ GET /api/usage?start=1784300400&end=1784386800&bucket=1200
 }
 ```
 
-- `series`: 유형별 차트 데이터
-- `baselines`: `start` 이전 유형별 마지막 값
-- `entries`: 표에 표시할 원본 데이터, 최근 순 최대 300건
-- `counts`: 기간 안의 유형별 원본 행 수
+- `series`: chart data by usage type
+- `baselines`: last value of each type before `start`
+- `entries`: raw data for the table, newest first, up to 300 rows
+- `counts`: number of raw rows of each type within the range
 
-프론트엔드는 증가·동일 값에서 다음 측정값까지 이전 값을 평탄하게 유지하고, 사용률이 감소한 지점은 리셋으로 판단해 선을 끊습니다.
+For increasing or unchanged values, the frontend holds the previous value flat until the next measurement. A decrease in usage is treated as a reset and breaks the line.
 
-## 외부 수집 인증
+## External Ingestion Authentication
 
 ```http
 Authorization: Bearer <INGEST_TOKEN>
 Content-Type: application/json
 ```
 
-토큰 등록:
+Register the token:
 
 ```bash
 npx wrangler secret put INGEST_TOKEN
 ```
 
-## Raspberry Pi 수집 엔드포인트
+## Raspberry Pi Ingestion Endpoint
 
-`POST /api/usagefrompi`는 `POST /api/usage`와 동일한 입력 형식과 저장 처리를 사용하지만,
-수집 토큰 인증 없이 동작하는 별도 엔드포인트입니다. 기본값은 비활성화이며,
-GitHub Actions production environment variable `USAGEFROMPI_ENABLED`를 `true`로 설정한
-배포에서만 활성화됩니다. 비활성화된 상태에서는 `404`를 반환합니다.
+`POST /api/usagefrompi` uses the same input format and storage logic as `POST /api/usage`, but is a separate endpoint that works without ingestion-token authentication. It is disabled by default and enabled only in deployments where the GitHub Actions production environment variable `USAGEFROMPI_ENABLED` is set to `true`. It returns `404` while disabled.
 
 ```http
 POST /api/usagefrompi
 Content-Type: application/json
 ```
 
-## 단건 데이터 전송
+## Send One Record
 
 ```http
 POST /api/usage
@@ -207,22 +203,22 @@ Idempotency-Key: 5h-20260718-120000
   "usedPercent": 42.5,
   "source": "collector",
   "externalId": "5h-20260718-120000",
-  "note": "선택 값",
+  "note": "optional value",
   "metadata": {
     "collectorVersion": "1.0.0"
   }
 }
 ```
 
-`usageType`은 `5h` 또는 `week`입니다.
+`usageType` is either `5h` or `week`.
 
-`recordedAt` 형식:
+Accepted `recordedAt` formats:
 
-- Unix timestamp 초
-- Unix timestamp 밀리초
-- ISO 8601 문자열
+- Unix timestamp in seconds
+- Unix timestamp in milliseconds
+- ISO 8601 string
 
-사용량은 퍼센트로 전송합니다.
+Send usage as a percentage:
 
 ```json
 {
@@ -230,13 +226,13 @@ Idempotency-Key: 5h-20260718-120000
 }
 ```
 
-D1에는 `used_percent`만 저장됩니다. `usedPercent`는 0 이상 100 이하만 허용하며, 한도·원본 사용량·입력/출력 토큰·비용은 저장하거나 입력받지 않습니다.
+Only `used_percent` is stored in D1. `usedPercent` must be between 0 and 100, inclusive. Limits, raw usage, input/output tokens, and costs are neither accepted nor stored.
 
-`source + usageType + externalId` 조합은 유일합니다. 같은 조합을 다시 보내면 새 행을 만들지 않고 기존 행을 갱신합니다. 단건 요청에서 `externalId`가 없으면 `Idempotency-Key` 헤더를 대신 사용할 수 있습니다.
+The combination of `source + usageType + externalId` is unique. Sending the same combination again updates the existing row instead of creating a new one. If a single-record request has no `externalId`, the `Idempotency-Key` header can be used instead.
 
-## 여러 건 전송
+## Send Multiple Records
 
-최대 100건입니다.
+The maximum is 100 records.
 
 ```json
 {
@@ -259,41 +255,41 @@ D1에는 `used_percent`만 저장됩니다. `usedPercent`는 0 이상 100 이하
 }
 ```
 
-배열 자체를 요청 본문으로 보내도 됩니다.
+You may also send the array itself as the request body.
 
-## 관리자 수동 추가
+## Administrator Manual Add
 
 ```http
 POST /api/usage/manual
 Content-Type: application/json
 Cookie: codex_admin_session=...
-Origin: https://현재-대시보드-주소
+Origin: https://current-dashboard-address
 ```
 
-본문 형식은 외부 수집 요청과 같습니다. 로그인하지 않으면 `401 admin_login_required`입니다.
+The body has the same format as an external ingestion request. Without login, the response is `401 admin_login_required`.
 
-## 삭제
+## Delete
 
 ```http
 DELETE /api/usage/123
 Cookie: codex_admin_session=...
-Origin: https://현재-대시보드-주소
+Origin: https://current-dashboard-address
 ```
 
-삭제는 되돌릴 수 없습니다. 로그인하지 않으면 `401 admin_login_required`입니다.
+Deletion cannot be undone. Without login, the response is `401 admin_login_required`.
 
-## curl로 관리자 흐름 시험
+## Test the Administrator Flow with curl
 
-브라우저가 아닌 curl로 시험할 때는 쿠키 파일을 사용하고 `Origin`을 실제 대시보드 주소와 같게 설정합니다.
+When testing with curl instead of a browser, use a cookie file and set `Origin` to the actual dashboard URL.
 
 ```bash
-BASE_URL="https://codex-usage-dashboard.<계정>.workers.dev"
+BASE_URL="https://codex-usage-dashboard.<account>.workers.dev"
 
 curl -c admin-cookies.txt \
   -X POST "$BASE_URL/api/admin/login" \
   -H "Origin: $BASE_URL" \
   -H "Content-Type: application/json" \
-  -d '{"password":"설정한 비밀번호"}'
+  -d '{"password":"the configured password"}'
 ```
 
 ```bash
