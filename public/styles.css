@@ -934,6 +934,55 @@ select {
   fill: var(--series-week);
 }
 
+.chart-note-marker {
+  cursor: pointer;
+  outline: none;
+}
+
+.chart-note-marker-stem,
+.chart-note-marker-bg,
+.chart-note-marker-icon {
+  vector-effect: non-scaling-stroke;
+}
+
+.chart-note-marker-stem {
+  stroke-width: 1;
+  stroke-dasharray: 2 2;
+  opacity: 0.58;
+  pointer-events: none;
+}
+
+.chart-note-marker-bg {
+  fill: var(--panel-strong);
+  stroke-width: 1.8;
+  filter: drop-shadow(0 4px 7px rgba(0, 0, 0, 0.26));
+}
+
+.chart-note-marker-icon {
+  fill: none;
+  stroke-width: 1.45;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.chart-note-marker-5h .chart-note-marker-stem,
+.chart-note-marker-5h .chart-note-marker-bg,
+.chart-note-marker-5h .chart-note-marker-icon {
+  stroke: var(--series-5h);
+}
+
+.chart-note-marker-week .chart-note-marker-stem,
+.chart-note-marker-week .chart-note-marker-bg,
+.chart-note-marker-week .chart-note-marker-icon {
+  stroke: var(--series-week);
+}
+
+.chart-note-marker:hover .chart-note-marker-bg,
+.chart-note-marker:focus .chart-note-marker-bg {
+  stroke-width: 3;
+}
+
 .chart-hover-line {
   stroke: rgba(255, 255, 255, 0.32);
   stroke-width: 1;
@@ -975,6 +1024,14 @@ select {
   margin-bottom: 7px;
   color: var(--muted);
   font-size: 0.7rem;
+}
+
+.chart-note-tooltip-content {
+  max-width: 260px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 0.8rem;
+  line-height: 1.55;
 }
 
 .tooltip-series-row {
@@ -1069,14 +1126,47 @@ td.note-cell {
   text-overflow: ellipsis;
 }
 
+td.note-cell-editable {
+  min-width: 240px;
+  overflow: visible;
+}
+
+.note-input {
+  width: min(280px, 32vw);
+  min-width: 180px;
+  min-height: 34px;
+  padding: 6px 9px;
+  font-size: 0.76rem;
+}
+
+.admin-row-actions {
+  display: flex;
+  gap: 7px;
+}
+
+.note-save-button,
 .delete-button {
   min-height: 30px;
   padding: 0 10px;
-  border: 1px solid rgba(255, 120, 135, 0.25);
   border-radius: 9px;
+  cursor: pointer;
+}
+
+.note-save-button {
+  border: 1px solid var(--border-strong);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.note-save-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.delete-button {
+  border: 1px solid rgba(255, 120, 135, 0.25);
   color: var(--danger);
   background: rgba(255, 120, 135, 0.07);
-  cursor: pointer;
 }
 
 .empty-row td {

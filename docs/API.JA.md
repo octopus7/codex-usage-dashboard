@@ -15,7 +15,7 @@ https://codex-usage-dashboard.<アカウント>.workers.dev
 | 公開期間照会 | 認証なし |
 | 外部収集 `POST /api/usage` | `INGEST_TOKEN` Bearer トークン |
 | 管理者の状態・設定・ログイン・ログアウト | 同一オリジンのブラウザーリクエスト |
-| 管理者による手動追加・削除 | HttpOnly 管理者セッションクッキー |
+| 管理者による手動追加・メモ編集・削除 | HttpOnly 管理者セッションクッキー |
 
 管理者パスワードを Worker Secret として事前登録する必要はありません。初期設定 API がパスワードハッシュを D1 に保存します。
 
@@ -267,6 +267,23 @@ Origin: https://現在のダッシュボードアドレス
 ```
 
 本文の形式は外部収集リクエストと同じです。ログインしていない場合は `401 admin_login_required` です。
+
+## メモ編集
+
+```http
+PATCH /api/usage/123
+Content-Type: application/json
+Cookie: codex_admin_session=...
+Origin: https://現在のダッシュボードアドレス
+```
+
+```json
+{
+  "note": "更新したメモ"
+}
+```
+
+`note` には最大1000文字の文字列または `null` を指定できます。空文字列を送るとメモが削除されます。ログインしていない場合は `401 admin_login_required` です。
 
 ## 削除
 

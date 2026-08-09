@@ -15,7 +15,7 @@ https://codex-usage-dashboard.<account>.workers.dev
 | Public range query | None |
 | External ingestion `POST /api/usage` | `INGEST_TOKEN` Bearer token |
 | Administrator status, setup, login, and logout | Same-origin browser request |
-| Administrator manual add and delete | HttpOnly administrator session cookie |
+| Administrator manual add, note edit, and delete | HttpOnly administrator session cookie |
 
 The administrator password is not preregistered as a Worker Secret. The initial setup API stores its password hash in D1.
 
@@ -267,6 +267,23 @@ Origin: https://current-dashboard-address
 ```
 
 The body has the same format as an external ingestion request. Without login, the response is `401 admin_login_required`.
+
+## Edit a Note
+
+```http
+PATCH /api/usage/123
+Content-Type: application/json
+Cookie: codex_admin_session=...
+Origin: https://current-dashboard-address
+```
+
+```json
+{
+  "note": "updated note"
+}
+```
+
+`note` accepts a string of up to 1000 characters or `null`. An empty string clears the note. Without login, the response is `401 admin_login_required`.
 
 ## Delete
 

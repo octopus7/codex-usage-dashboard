@@ -93,3 +93,88 @@ test("GET /rss.xml returns a public RSS response", async () => {
   assert.equal(response.headers.get("Content-Type"), "application/rss+xml; charset=utf-8");
   assert.match(rss, /<description>68\.2<\/description>/);
 });
+
+test("authenticated administrators can update a usage note", async () => {
+  const token = "a".repeat(32);
+  let storedNote = null;
+  let storedUpdatedAt = null;
+  const env = {
+    DB: {
+      prepare(query) {
+        const normalizedQuery = query.replace(/\s+/g, " ").trim();
+        return {
+          values: [],
+          bind(...values) {
+            this.values = values;
+            return this;
+          },
+          async first() {
+            if (normalizedQuery.includes("FROM admin_sessions")) {
+              return {
+                tokenHash: this.values[0],
+                expiresAt: Math.floor(Date.now() / 1000) + 3600,
+                lastSeenAt: Math.floor(Date.now() / 1000)
+              };
+            }
+            if (normalizedQuery === "SELECT id FROM codex_usage WHERE id = ?") {
+              return this.values[0] === 7 ? { id: 7 } : null;
+            }
+            throw new Error(`Unexpected first query: ${normalizedQuery}`);
+          },
+          async run() {
+            if (!normalizedQuery.startsWith("UPDATE codex_usage SET note = ?")) {
+              throw new Error(`Unexpected run query: ${normalizedQuery}`);
+            }
+            [storedNote, storedUpdatedAt] = this.values;
+            return { success: true, meta: { changes: 1 } };
+          }
+        };
+      }
+    }
+  };
+
+  const response = await worker.fetch(
+    new Request("https://usage.example.com/api/usage/7", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Cookie: `codex_admin_session=${token}`,
+        Origin: "https://usage.example.com"
+      },
+      body: JSON.stringify({ note: "  dashboard memo  " })
+    }),
+    env
+  );
+  const result = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(result.note, "dashboard memo");
+  assert.equal(storedNote, "dashboard memo");
+  assert.equal(typeof storedUpdatedAt, "number");
+});
+
+test("usage note updates require an administrator session", async () => {
+  const env = {
+    DB: {
+      prepare() {
+        throw new Error("Unauthenticated note updates must not query or update D1");
+      }
+    }
+  };
+
+  const response = await worker.fetch(
+    new Request("https://usage.example.com/api/usage/7", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Origin: "https://usage.example.com"
+      },
+      body: JSON.stringify({ note: "not allowed" })
+    }),
+    env
+  );
+  const result = await response.json();
+
+  assert.equal(response.status, 401);
+  assert.equal(result.error, "admin_login_required");
+});

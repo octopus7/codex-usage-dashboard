@@ -15,7 +15,7 @@ https://codex-usage-dashboard.<계정>.workers.dev
 | 공개 기간 조회 | 인증 없음 |
 | 외부 수집 `POST /api/usage` | `INGEST_TOKEN` Bearer 토큰 |
 | 관리자 상태·설정·로그인·로그아웃 | 같은 출처의 브라우저 요청 |
-| 관리자 수동 추가·삭제 | HttpOnly 관리자 세션 쿠키 |
+| 관리자 수동 추가·메모 수정·삭제 | HttpOnly 관리자 세션 쿠키 |
 
 관리자 비밀번호를 Worker Secret으로 미리 등록하지 않습니다. 최초 설정 API가 D1에 비밀번호 해시를 저장합니다.
 
@@ -273,6 +273,23 @@ Origin: https://현재-대시보드-주소
 ```
 
 본문 형식은 외부 수집 요청과 같습니다. 로그인하지 않으면 `401 admin_login_required`입니다.
+
+## 메모 수정
+
+```http
+PATCH /api/usage/123
+Content-Type: application/json
+Cookie: codex_admin_session=...
+Origin: https://현재-대시보드-주소
+```
+
+```json
+{
+  "note": "변경한 메모"
+}
+```
+
+`note`는 최대 1000자의 문자열 또는 `null`을 받습니다. 빈 문자열을 보내면 메모가 삭제됩니다. 로그인하지 않으면 `401 admin_login_required`입니다.
 
 ## 삭제
 

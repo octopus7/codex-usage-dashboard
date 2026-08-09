@@ -42,6 +42,16 @@ TRANSLATIONS.ja.useStepChart = "階段グラフに切り替え";
 TRANSLATIONS.ja.chartAriaSmooth = "Codex 5時間および週間使用量の滑らかな時系列グラフ";
 TRANSLATIONS.ja.chartDescriptionSmooth = "測定値を滑らかな曲線で結び、値が減少した場合はリセットとして線を分割します。";
 
+TRANSLATIONS.en.notePlaceholder = "Enter a note";
+TRANSLATIONS.en.noteSaved = "Note saved.";
+TRANSLATIONS.en.noteSaveFailed = "Unable to save the note.";
+TRANSLATIONS.ko.notePlaceholder = "메모 입력";
+TRANSLATIONS.ko.noteSaved = "메모를 저장했습니다.";
+TRANSLATIONS.ko.noteSaveFailed = "메모를 저장하지 못했습니다.";
+TRANSLATIONS.ja.notePlaceholder = "メモを入力";
+TRANSLATIONS.ja.noteSaved = "メモを保存しました。";
+TRANSLATIONS.ja.noteSaveFailed = "メモを保存できませんでした。";
+
 TRANSLATIONS.en.swipePrevious = "Use the left arrow to view the previous period";
 TRANSLATIONS.ko.swipePrevious = "왼쪽 이전 버튼으로 이전 기간을 확인할 수 있습니다";
 TRANSLATIONS.ja.swipePrevious = "左矢印ボタンで前の期間を表示できます";
@@ -186,6 +196,7 @@ const elements = {
 
 let toastTimer;
 let swipeStart = null;
+let pinnedNoteMarkerId = null;
 
 function applyTheme() {
   document.documentElement.dataset.theme = currentTheme;
@@ -478,13 +489,47 @@ function bindEvents() {
   elements.addForm.addEventListener("submit", submitManualUsage);
 
   elements.tableBody.addEventListener("click", async (event) => {
-    const button = event.target.closest("[data-delete-id]");
-    if (!button) return;
+    const saveButton = event.target.closest("[data-save-note-id]");
+    if (saveButton) {
+      const input = elements.tableBody.querySelector(
+        `[data-note-input-id="${saveButton.dataset.saveNoteId}"]`
+      );
+      if (input) await saveEntryNote(Number(saveButton.dataset.saveNoteId), input, saveButton);
+      return;
+    }
+
+    const deleteButton = event.target.closest("[data-delete-id]");
+    if (!deleteButton) return;
     await deleteEntry(
-      Number(button.dataset.deleteId),
-      button.dataset.usageType,
-      button.dataset.recordedAt
+      Number(deleteButton.dataset.deleteId),
+      deleteButton.dataset.usageType,
+      deleteButton.dataset.recordedAt
     );
+  });
+
+  elements.tableBody.addEventListener("input", (event) => {
+    const input = event.target.closest("[data-note-input-id]");
+    if (!input) return;
+    const saveButton = elements.tableBody.querySelector(
+      `[data-save-note-id="${input.dataset.noteInputId}"]`
+    );
+    if (saveButton) saveButton.disabled = input.value.trim() === input.dataset.originalNote;
+  });
+
+  elements.tableBody.addEventListener("keydown", (event) => {
+    const input = event.target.closest("[data-note-input-id]");
+    if (!input) return;
+    const saveButton = elements.tableBody.querySelector(
+      `[data-save-note-id="${input.dataset.noteInputId}"]`
+    );
+    if (event.key === "Enter") {
+      event.preventDefault();
+      if (saveButton && !saveButton.disabled) saveButton.click();
+    } else if (event.key === "Escape") {
+      input.value = input.dataset.originalNote;
+      if (saveButton) saveButton.disabled = true;
+      input.blur();
+    }
   });
 
   elements.tableToggleButton.addEventListener("click", toggleTableExpanded);
@@ -492,7 +537,40 @@ function bindEvents() {
   elements.tableNextButton.addEventListener("click", () => loadTablePage(state.tablePage + 1));
 
   elements.chart.addEventListener("pointermove", updateChartTooltip);
-  elements.chart.addEventListener("pointerleave", hideChartTooltip);
+  elements.chart.addEventListener("pointerleave", () => {
+    if (!pinnedNoteMarkerId) hideChartTooltip();
+  });
+  elements.chart.addEventListener("focusin", (event) => {
+    const marker = event.target.closest?.("[data-note-marker-id]");
+    if (marker) showNoteTooltip(marker);
+  });
+  elements.chart.addEventListener("focusout", () => {
+    if (!pinnedNoteMarkerId) hideChartTooltip();
+  });
+  elements.chart.addEventListener("click", (event) => {
+    const marker = event.target.closest?.("[data-note-marker-id]");
+    if (!marker) return;
+    event.preventDefault();
+    event.stopPropagation();
+    togglePinnedNoteTooltip(marker);
+  });
+  elements.chart.addEventListener("keydown", (event) => {
+    const marker = event.target.closest?.("[data-note-marker-id]");
+    if (!marker) return;
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      togglePinnedNoteTooltip(marker);
+    } else if (event.key === "Escape") {
+      pinnedNoteMarkerId = null;
+      hideChartTooltip();
+      marker.blur();
+    }
+  });
+  document.addEventListener("click", () => {
+    if (!pinnedNoteMarkerId) return;
+    pinnedNoteMarkerId = null;
+    hideChartTooltip();
+  });
 
   elements.chartCard.addEventListener(
     "touchstart",
@@ -519,7 +597,10 @@ function bindEvents() {
     { passive: true }
   );
 
-  window.addEventListener("resize", hideChartTooltip);
+  window.addEventListener("resize", () => {
+    pinnedNoteMarkerId = null;
+    hideChartTooltip();
+  });
 }
 
 function navigateOlder() {
@@ -911,6 +992,7 @@ function renderChart() {
   const range = state.data?.range || calculateRange();
   const selectedTypes = USAGE_TYPES.filter((usageType) => state.visibleTypes.has(usageType));
 
+  pinnedNoteMarkerId = null;
   hideChartTooltip();
 
   if (selectedTypes.length === 0) {
@@ -1007,6 +1089,7 @@ function renderChart() {
   }
 
   const seriesMarkup = [];
+  const noteMarkerMarkup = [];
   const totalRealPoints = Object.values(geometrySeries)
     .flat()
     .filter((point) => !point.synthetic).length;
@@ -1032,6 +1115,25 @@ function renderChart() {
         );
       }
     }
+
+    for (const point of points.filter((candidate) => !candidate.synthetic && candidate.row?.note)) {
+      const dotRadius = usageType === "5h" ? 1.5 : 3.5;
+      const markerRadius = usageType === "5h" ? 8 : 10.5;
+      const markerY = point.y - dotRadius - markerRadius - 6;
+      const stemEndY = point.y - markerY - dotRadius;
+      const iconScale = markerRadius / 10;
+      noteMarkerMarkup.push(`
+        <g class="chart-note-marker chart-note-marker-${suffix}" transform="translate(${point.x} ${markerY})"
+          tabindex="0" role="button" aria-label="${escapeHtml(`${t("note")}: ${point.row.note}`)}"
+          data-note-marker-id="${point.row.id}" data-note-x="${point.x}" data-note-y="${markerY}"
+          data-note-radius="${markerRadius}" data-note-usage-type="${escapeHtml(usageType)}"
+          data-note-recorded-at="${point.actualRecordedAt}" data-note="${escapeHtml(point.row.note)}">
+          <line class="chart-note-marker-stem" x1="0" y1="${markerRadius}" x2="0" y2="${stemEndY}"></line>
+          <circle class="chart-note-marker-bg" cx="0" cy="0" r="${markerRadius}"></circle>
+          <path class="chart-note-marker-icon" transform="scale(${iconScale})" d="M-4-4h8v6h-4.5L-3 4.5V2h-1z"></path>
+        </g>
+      `);
+    }
   }
 
   elements.chart.innerHTML = `
@@ -1041,6 +1143,7 @@ function renderChart() {
     <line id="chart-hover-line" class="chart-hover-line" y1="${padding.top}" y2="${padding.top + plotHeight}" hidden></line>
     <g id="chart-hover-dots"></g>
     <rect x="${padding.left}" y="${padding.top}" width="${plotWidth}" height="${plotHeight}" fill="transparent"></rect>
+    ${noteMarkerMarkup.join("")}
   `;
 }
 
@@ -1187,6 +1290,13 @@ function updateChartTooltip(event) {
   const geometry = state.chartGeometry;
   if (!geometry) return;
 
+  const noteMarker = event.target.closest?.("[data-note-marker-id]");
+  if (noteMarker) {
+    showNoteTooltip(noteMarker);
+    return;
+  }
+  if (pinnedNoteMarkerId) return;
+
   const bounds = elements.chart.getBoundingClientRect();
   const rawSvgX = ((event.clientX - bounds.left) / bounds.width) * geometry.width;
   const svgX = clamp(
@@ -1260,6 +1370,54 @@ function updateChartTooltip(event) {
   elements.chartTooltip.style.top = `${top}px`;
 }
 
+function togglePinnedNoteTooltip(marker) {
+  const markerId = marker.dataset.noteMarkerId;
+  if (pinnedNoteMarkerId === markerId) {
+    pinnedNoteMarkerId = null;
+    hideChartTooltip();
+    return;
+  }
+  pinnedNoteMarkerId = markerId;
+  showNoteTooltip(marker);
+}
+
+function showNoteTooltip(marker) {
+  const geometry = state.chartGeometry;
+  if (!geometry) return;
+
+  const usageType = marker.dataset.noteUsageType;
+  const meta = SERIES_META[usageType] || SERIES_META["5h"];
+  const recordedAt = Number(marker.dataset.noteRecordedAt);
+  const svgX = Number(marker.dataset.noteX);
+  const svgY = Number(marker.dataset.noteY);
+  const markerRadius = Number(marker.dataset.noteRadius);
+  const bounds = elements.chart.getBoundingClientRect();
+  const hoverLine = elements.chart.querySelector("#chart-hover-line");
+  const hoverDots = elements.chart.querySelector("#chart-hover-dots");
+  if (hoverLine) hoverLine.hidden = true;
+  if (hoverDots) hoverDots.innerHTML = "";
+
+  elements.chartTooltip.innerHTML = `
+    <span class="tooltip-time">${escapeHtml(`${meta.label} · ${formatFullDateTime(recordedAt)}`)}</span>
+    <div class="chart-note-tooltip-content">${escapeHtml(marker.dataset.note)}</div>
+  `;
+  elements.chartTooltip.hidden = false;
+
+  const tooltipWidth = elements.chartTooltip.offsetWidth;
+  const tooltipHeight = elements.chartTooltip.offsetHeight;
+  const localX = (svgX / geometry.width) * bounds.width;
+  const localY = (svgY / geometry.height) * bounds.height;
+  const localRadius = (markerRadius / geometry.height) * bounds.height;
+  const left = clamp(localX - tooltipWidth / 2, 8, bounds.width - tooltipWidth - 8);
+  const spaceAbove = localY - localRadius - 10;
+  const top = spaceAbove >= tooltipHeight + 8
+    ? spaceAbove - tooltipHeight
+    : localY + localRadius + 10;
+
+  elements.chartTooltip.style.left = `${left}px`;
+  elements.chartTooltip.style.top = `${clamp(top, 8, bounds.height - tooltipHeight - 8)}px`;
+}
+
 function findChartPointAtTimestamp(points, timestamp) {
   if (!points.length || timestamp < points[0].timestamp) return null;
 
@@ -1322,8 +1480,11 @@ function renderTable() {
       const percent = utilizationPercent(row);
       const meta = SERIES_META[row.usageType] || SERIES_META["5h"];
       const adminCell = state.adminAuthenticated
-        ? `<td><button class="delete-button" type="button" data-delete-id="${row.id}" data-usage-type="${escapeHtml(row.usageType)}" data-recorded-at="${row.recordedAt}">삭제</button></td>`
+        ? `<td><div class="admin-row-actions"><button class="note-save-button" type="button" data-save-note-id="${row.id}" disabled>${escapeHtml(t("save"))}</button><button class="delete-button" type="button" data-delete-id="${row.id}" data-usage-type="${escapeHtml(row.usageType)}" data-recorded-at="${row.recordedAt}">${escapeHtml(t("delete"))}</button></div></td>`
         : "";
+      const noteCell = state.adminAuthenticated
+        ? `<td class="note-cell note-cell-editable"><input class="note-input" type="text" maxlength="1000" value="${escapeHtml(row.note || "")}" placeholder="${escapeHtml(t("notePlaceholder"))}" aria-label="${escapeHtml(t("note"))}" data-note-input-id="${row.id}" data-original-note="${escapeHtml(row.note || "")}"></td>`
+        : `<td class="note-cell" title="${escapeHtml(row.note || "")}">${escapeHtml(row.note || "-")}</td>`;
 
       return `
         <tr>
@@ -1331,7 +1492,7 @@ function renderTable() {
           <td title="${escapeHtml(new Date(row.recordedAt * 1000).toISOString())}">${escapeHtml(formatDateTime(row.recordedAt))}</td>
           <td>${percent === null ? "-" : `${formatNumber(percent, 1)}%`}</td>
           <td>${escapeHtml(row.source || "-")}</td>
-          <td class="note-cell" title="${escapeHtml(row.note || "")}">${escapeHtml(row.note || "-")}</td>
+          ${noteCell}
           ${adminCell}
         </tr>
       `;
@@ -1398,6 +1559,57 @@ async function submitManualUsage(event) {
     showToast(error.message, true);
   } finally {
     elements.addSubmitButton.disabled = false;
+  }
+}
+
+async function saveEntryNote(id, input, button) {
+  if (!requireAdminSession()) return;
+
+  const note = input.value.trim();
+  input.disabled = true;
+  button.disabled = true;
+  try {
+    const response = await fetch(`/api/usage/${id}`, {
+      method: "PATCH",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ note })
+    });
+    const result = await response.json();
+    if (response.status === 401) {
+      await handleAdminSessionExpired();
+      return;
+    }
+    if (!response.ok) throw new Error(result.message || t("noteSaveFailed"));
+
+    const savedNote = result.note || "";
+    input.value = savedNote;
+    input.dataset.originalNote = savedNote;
+    updateCachedNote(id, result.note, result.updatedAt);
+    renderChart();
+    showToast(t("noteSaved"));
+  } catch (error) {
+    showToast(error.message, true);
+  } finally {
+    input.disabled = false;
+    button.disabled = input.value.trim() === input.dataset.originalNote;
+  }
+}
+
+function updateCachedNote(id, note, updatedAt) {
+  const collections = [
+    state.tableEntries,
+    state.data?.entries,
+    state.data?.series?.["5h"],
+    state.data?.series?.week,
+    Object.values(state.data?.baselines || {})
+  ];
+  for (const rows of collections) {
+    for (const row of rows || []) {
+      if (Number(row?.id) !== id) continue;
+      row.note = note;
+      row.updatedAt = updatedAt;
+    }
   }
 }
 

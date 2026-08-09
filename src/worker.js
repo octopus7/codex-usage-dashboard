@@ -169,12 +169,19 @@ async function routeApi(request, env, url) {
     return insertUsage(request, env, true);
   }
 
-  const deleteMatch = url.pathname.match(/^\/api\/usage\/(\d+)$/);
-  if (request.method === "DELETE" && deleteMatch) {
+  const usageItemMatch = url.pathname.match(/^\/api\/usage\/(\d+)$/);
+  if (request.method === "PATCH" && usageItemMatch) {
     if (!isSameOriginRequest(request)) return forbiddenOrigin();
     const session = await requireAdminSession(request, env);
     if (!session) return adminUnauthorized();
-    return deleteUsage(env, Number(deleteMatch[1]));
+    return updateUsageNote(request, env, Number(usageItemMatch[1]));
+  }
+
+  if (request.method === "DELETE" && usageItemMatch) {
+    if (!isSameOriginRequest(request)) return forbiddenOrigin();
+    const session = await requireAdminSession(request, env);
+    if (!session) return adminUnauthorized();
+    return deleteUsage(env, Number(usageItemMatch[1]));
   }
 
   return jsonResponse(
@@ -538,6 +545,65 @@ async function deleteUsage(env, id) {
     deletedId: id,
     usageType: existing.usageType
   });
+}
+
+async function updateUsageNote(request, env, id) {
+  if (!Number.isSafeInteger(id) || id <= 0) {
+    return jsonResponse(
+      { ok: false, error: "invalid_id", message: "메모를 변경할 ID가 올바르지 않습니다." },
+      400
+    );
+  }
+
+  let payload;
+  try {
+    payload = await request.json();
+  } catch {
+    return jsonResponse(
+      { ok: false, error: "invalid_json", message: "JSON 요청 본문이 필요합니다." },
+      400
+    );
+  }
+
+  if (
+    !payload ||
+    typeof payload !== "object" ||
+    Array.isArray(payload) ||
+    !Object.hasOwn(payload, "note") ||
+    (payload.note !== null && typeof payload.note !== "string")
+  ) {
+    return jsonResponse(
+      { ok: false, error: "validation_error", message: "note는 문자열 또는 null이어야 합니다." },
+      400
+    );
+  }
+
+  if (typeof payload.note === "string" && payload.note.length > 1000) {
+    return jsonResponse(
+      { ok: false, error: "validation_error", message: "note는 1000자 이하여야 합니다." },
+      400
+    );
+  }
+
+  const existing = await env.DB.prepare(
+    "SELECT id FROM codex_usage WHERE id = ?"
+  ).bind(id).first();
+  if (!existing) {
+    return jsonResponse(
+      { ok: false, error: "not_found", message: "메모를 변경할 데이터를 찾지 못했습니다." },
+      404
+    );
+  }
+
+  const note = truncateString(payload.note, 1000);
+  const updatedAt = Math.floor(Date.now() / 1000);
+  await env.DB.prepare(`
+    UPDATE codex_usage
+    SET note = ?, updated_at = ?
+    WHERE id = ?
+  `).bind(note, updatedAt, id).run();
+
+  return jsonResponse({ ok: true, id, note, updatedAt });
 }
 
 function normalizeInput(input, options) {
