@@ -1,7 +1,7 @@
 export const RESET_VALUE_THRESHOLD = 1;
 export const RESET_FORECAST_DEFAULT_DAYS = 7;
 export const RESET_FORECAST_MIN_DAYS = 1;
-export const RESET_FORECAST_MAX_DAYS = 30;
+export const RESET_FORECAST_MAX_DAYS = 7;
 export const RESET_FORECAST_INCREASE = 100;
 
 export function forecastDurationSeconds(days = RESET_FORECAST_DEFAULT_DAYS) {

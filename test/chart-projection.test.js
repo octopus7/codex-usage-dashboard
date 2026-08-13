@@ -45,15 +45,20 @@ test("builds a seven-day forecast and separates elapsed and future areas", () =>
   });
 });
 
-test("uses the selected arrival days to adjust the forecast slope", () => {
+test("uses the selected arrival days up to the seven-day maximum", () => {
   const forecasts = buildResetForecasts([
     point(0, 80),
     point(1_000, 1),
     point(2_000, 15)
-  ], 1_000 + 24 * 60 * 60, 10);
+  ], 1_000 + 24 * 60 * 60, 7);
 
-  assert.equal(forecasts[0].durationSeconds, 10 * 24 * 60 * 60);
-  assert.equal(forecasts[0].currentValue, 11);
+  assert.equal(forecasts[0].durationSeconds, 7 * 24 * 60 * 60);
+  assert.equal(forecasts[0].currentValue, 1 + 100 / 7);
+});
+
+test("caps the arrival days at seven", () => {
+  assert.equal(forecastDurationSeconds(8), 7 * 24 * 60 * 60);
+  assert.equal(forecastDurationSeconds(30), 7 * 24 * 60 * 60);
 });
 
 test("stops a prior forecast when a later reset begins", () => {
