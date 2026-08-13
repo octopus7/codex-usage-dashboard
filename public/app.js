@@ -253,13 +253,19 @@ function setupChartInfo() {
   tooltip.role = "tooltip";
   tooltip.hidden = true;
 
+  const appliedRange = document.createElement("span");
+  appliedRange.id = "chart-applied-range";
+  appliedRange.className = "chart-applied-range";
+  appliedRange.setAttribute("aria-label", t("range"));
+
   wrapper.append(button, tooltip);
   const title = description.previousElementSibling;
-  title.append(" ", wrapper);
+  title.append(" ", wrapper, " ", appliedRange);
   description.remove();
   elements.chartInfoWrap = wrapper;
   elements.chartInfoButton = button;
   elements.chartInfoTooltip = tooltip;
+  elements.chartAppliedRange = appliedRange;
 
   const setTooltipVisible = (visible) => {
     tooltip.hidden = !visible;
@@ -307,6 +313,7 @@ function applyLanguage() {
     const button = document.querySelector(`[data-scale="${key}"]`);
     if (button) button.textContent = scale.label;
   });
+  updateAppliedRangeLabel();
   SERIES_META["5h"].label = t("fiveHour");
   SERIES_META.week.label = t("weekly");
   METRICS.percent.label = t("utilization");
@@ -1314,7 +1321,6 @@ function createForecastMarkup(forecasts, suffix, xFor, yFor, range, plotBottom) 
     const startY = yFor(valueAt(visibleStart));
     const endY = yFor(valueAt(visibleEnd));
     const currentY = yFor(valueAt(currentTimestamp));
-    const linePath = `M ${startX.toFixed(2)} ${startY.toFixed(2)} L ${endX.toFixed(2)} ${endY.toFixed(2)}`;
     const progressPath = `M ${startX.toFixed(2)} ${plotBottom.toFixed(2)} L ${startX.toFixed(2)} ${startY.toFixed(2)} L ${currentX.toFixed(2)} ${currentY.toFixed(2)} L ${currentX.toFixed(2)} ${plotBottom.toFixed(2)} Z`;
     const futurePath = `M ${currentX.toFixed(2)} ${plotBottom.toFixed(2)} L ${currentX.toFixed(2)} ${currentY.toFixed(2)} L ${endX.toFixed(2)} ${endY.toFixed(2)} L ${endX.toFixed(2)} ${plotBottom.toFixed(2)} Z`;
 
@@ -1323,7 +1329,6 @@ function createForecastMarkup(forecasts, suffix, xFor, yFor, range, plotBottom) 
       ${currentTimestamp < visibleEnd
         ? `<path class="chart-forecast-area chart-forecast-area-future chart-forecast-area-${suffix}" d="${futurePath}"></path>`
         : ""}
-      <path class="chart-forecast-line chart-forecast-line-${suffix}" d="${linePath}"></path>
     `;
   }).join("");
 }
@@ -1737,6 +1742,13 @@ function updateScaleButtons() {
     button.classList.toggle("active", active);
     button.setAttribute("aria-pressed", String(active));
   });
+  updateAppliedRangeLabel();
+}
+
+function updateAppliedRangeLabel() {
+  if (!elements.chartAppliedRange) return;
+  elements.chartAppliedRange.textContent = SCALES[state.scale]?.label || state.scale;
+  elements.chartAppliedRange.setAttribute("aria-label", `${t("range")}: ${elements.chartAppliedRange.textContent}`);
 }
 
 function updateLegendButtons() {

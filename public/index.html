@@ -94,50 +94,51 @@
             <h2>5시간 · 주간 사용량 추이</h2>
             <p>다음 측정값이 올 때까지 값을 평탄하게 유지하고, 값이 감소하면 리셋으로 판단해 해당 구간의 선을 끊습니다.</p>
           </div>
-          <div class="chart-controls">
-            <div id="series-legend" class="series-legend" role="group" aria-label="표시 시리즈">
-              <button class="legend-button active" type="button" data-series-toggle="5h" aria-pressed="true">
-                <i class="series-dot series-dot-5h"></i>5시간
-              </button>
-              <button class="legend-button active" type="button" data-series-toggle="week" aria-pressed="true">
-                <i class="series-dot series-dot-week"></i>주간
-              </button>
-            </div>
-
-            <button id="chart-mode-toggle" class="chart-mode-toggle" type="button" aria-pressed="false" aria-label="곡선형 그래프로 전환">
-              <svg class="chart-mode-icon chart-mode-icon-step" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M2 18h6v-6h6V6h8"></path>
-              </svg>
-              <svg class="chart-mode-icon chart-mode-icon-smooth" viewBox="0 0 24 24" aria-hidden="true" hidden>
-                <path d="M2 18c4 0 5-10 9-10s5 8 11-3"></path>
-              </svg>
-            </button>
-
-            <div class="reset-forecast-control" role="group" aria-label="리셋 예상 그래프">
-              <button id="reset-forecast-toggle" class="chart-mode-toggle reset-forecast-toggle" type="button" aria-pressed="false" aria-label="리셋 예상 그래프 표시">
-                <svg class="chart-mode-icon" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M3 18h18M4 16l5-5 4 3 7-8"></path>
-                  <path d="M16 6h4v4"></path>
-                </svg>
-              </button>
-              <div id="reset-forecast-stepper" class="reset-forecast-stepper" hidden>
-                <button id="reset-forecast-decrease" class="forecast-day-button" type="button" aria-label="100% 도달 일수 줄이기">−</button>
-                <span id="reset-forecast-days" class="forecast-day-value" aria-live="polite">7</span>
-                <button id="reset-forecast-increase" class="forecast-day-button" type="button" aria-label="100% 도달 일수 늘리기">+</button>
-              </div>
-            </div>
-
-            <div class="series-current-values" aria-label="Current values">
-              <strong id="filter-current-5h">-</strong>
-              <strong id="filter-current-week">-</strong>
-            </div>
-          </div>
         </div>
 
         <div id="chart-wrap" class="chart-wrap">
           <svg id="usage-chart" viewBox="0 0 900 340" role="img" aria-label="5시간 및 주간 Codex 사용량 계단형 시계열 차트"></svg>
           <div id="chart-tooltip" class="chart-tooltip" role="tooltip" hidden></div>
           <div id="chart-empty" class="chart-empty" hidden>이 기간에는 표시할 데이터가 없습니다.</div>
+        </div>
+
+        <div class="chart-controls">
+          <div id="series-legend" class="series-legend" role="group" aria-label="표시 시리즈">
+            <button class="legend-button active" type="button" data-series-toggle="5h" aria-pressed="true">
+              <i class="series-dot series-dot-5h"></i>5시간
+            </button>
+            <button class="legend-button active" type="button" data-series-toggle="week" aria-pressed="true">
+              <i class="series-dot series-dot-week"></i>주간
+            </button>
+          </div>
+
+          <button id="chart-mode-toggle" class="chart-mode-toggle" type="button" aria-pressed="false" aria-label="곡선형 그래프로 전환">
+            <svg class="chart-mode-icon chart-mode-icon-step" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M2 18h6v-6h6V6h8"></path>
+            </svg>
+            <svg class="chart-mode-icon chart-mode-icon-smooth" viewBox="0 0 24 24" aria-hidden="true" hidden>
+              <path d="M2 18c4 0 5-10 9-10s5 8 11-3"></path>
+            </svg>
+          </button>
+
+          <div class="reset-forecast-control" role="group" aria-label="리셋 예상 그래프">
+            <button id="reset-forecast-toggle" class="chart-mode-toggle reset-forecast-toggle" type="button" aria-pressed="false" aria-label="리셋 예상 그래프 표시">
+              <svg class="chart-mode-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 18h18M4 16l5-5 4 3 7-8"></path>
+                <path d="M16 6h4v4"></path>
+              </svg>
+            </button>
+            <div id="reset-forecast-stepper" class="reset-forecast-stepper" hidden>
+              <button id="reset-forecast-decrease" class="forecast-day-button" type="button" aria-label="100% 도달 일수 줄이기">−</button>
+              <span id="reset-forecast-days" class="forecast-day-value" aria-live="polite">7</span>
+              <button id="reset-forecast-increase" class="forecast-day-button" type="button" aria-label="100% 도달 일수 늘리기">+</button>
+            </div>
+          </div>
+
+          <div class="series-current-values" aria-label="Current values">
+            <strong id="filter-current-5h">-</strong>
+            <strong id="filter-current-week">-</strong>
+          </div>
         </div>
       </section>
 
