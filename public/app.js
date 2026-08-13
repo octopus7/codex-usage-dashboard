@@ -1,6 +1,15 @@
+import {
+  RESET_FORECAST_DEFAULT_DAYS,
+  RESET_FORECAST_MAX_DAYS,
+  RESET_FORECAST_MIN_DAYS,
+  buildResetForecasts
+} from "./chart-projection.js";
+
 const LANGUAGE_STORAGE_KEY = "codex-dashboard-language";
 const THEME_STORAGE_KEY = "codex-dashboard-theme";
 const SMOOTH_CHART_COOKIE = "codex-dashboard-smooth-chart";
+const RESET_FORECAST_COOKIE = "codex-dashboard-reset-forecast";
+const RESET_FORECAST_DAYS_STORAGE_KEY = "codex-dashboard-reset-forecast-days";
 const SUPPORTED_LANGUAGES = ["en", "ko", "ja"];
 const SUPPORTED_THEMES = ["midnight", "ocean", "forest", "pink-beige", "amber"];
 const LANGUAGE_LOCALES = { en: "en-US", ko: "ko-KR", ja: "ja-JP" };
@@ -41,6 +50,22 @@ TRANSLATIONS.ja.useSmoothChart = "滑らかなグラフに切り替え";
 TRANSLATIONS.ja.useStepChart = "階段グラフに切り替え";
 TRANSLATIONS.ja.chartAriaSmooth = "Codex 5時間および週間使用量の滑らかな時系列グラフ";
 TRANSLATIONS.ja.chartDescriptionSmooth = "測定値を滑らかな曲線で結び、値が減少した場合はリセットとして線を分割します。";
+
+TRANSLATIONS.en.resetForecast = "Show reset forecast";
+TRANSLATIONS.en.resetForecastOn = "Hide reset forecast";
+TRANSLATIONS.en.resetForecastDays = "Days to reach 100%";
+TRANSLATIONS.en.decreaseForecastDays = "Decrease days to reach 100%";
+TRANSLATIONS.en.increaseForecastDays = "Increase days to reach 100%";
+TRANSLATIONS.ko.resetForecast = "리셋 예상 그래프 표시";
+TRANSLATIONS.ko.resetForecastOn = "리셋 예상 그래프 숨기기";
+TRANSLATIONS.ko.resetForecastDays = "100% 도달 일수";
+TRANSLATIONS.ko.decreaseForecastDays = "100% 도달 일수 줄이기";
+TRANSLATIONS.ko.increaseForecastDays = "100% 도달 일수 늘리기";
+TRANSLATIONS.ja.resetForecast = "リセット予測を表示";
+TRANSLATIONS.ja.resetForecastOn = "リセット予測を非表示";
+TRANSLATIONS.ja.resetForecastDays = "100%到達日数";
+TRANSLATIONS.ja.decreaseForecastDays = "100%到達日数を減らす";
+TRANSLATIONS.ja.increaseForecastDays = "100%到達日数を増やす";
 
 TRANSLATIONS.en.notePlaceholder = "Enter a note";
 TRANSLATIONS.en.noteSaved = "Note saved.";
@@ -126,6 +151,8 @@ const state = {
   metric: initialMetric,
   visibleTypes: initialVisibleTypes,
   smoothChart: readCookie(SMOOTH_CHART_COOKIE) === "1",
+  resetForecast: readCookie(RESET_FORECAST_COOKIE) === "1",
+  resetForecastDays: readResetForecastDays(),
   loading: false,
   tableExpanded: false,
   tablePage: 0,
@@ -163,6 +190,11 @@ const elements = {
   chartTooltip: document.querySelector("#chart-tooltip"),
   chartEmpty: document.querySelector("#chart-empty"),
   chartModeToggle: document.querySelector("#chart-mode-toggle"),
+  resetForecastToggle: document.querySelector("#reset-forecast-toggle"),
+  resetForecastStepper: document.querySelector("#reset-forecast-stepper"),
+  resetForecastDecrease: document.querySelector("#reset-forecast-decrease"),
+  resetForecastDays: document.querySelector("#reset-forecast-days"),
+  resetForecastIncrease: document.querySelector("#reset-forecast-increase"),
   seriesLegend: document.querySelector("#series-legend"),
   tableBody: document.querySelector("#usage-table-body"),
   tablePanel: document.querySelector(".table-panel"),
@@ -306,6 +338,7 @@ function applyLanguage() {
   document.querySelector('[data-series-toggle="week"]')?.append(t("weekly"));
   document.querySelector("#usage-chart")?.setAttribute("aria-label", t("chartAria"));
   updateChartModeToggle();
+  updateResetForecastToggle();
   setText("#chart-empty", t("chartEmpty"));
   setText(".table-panel h2", t("tableTitle"));
   setText("#table-description", t("tableDescription"));
@@ -456,6 +489,16 @@ function bindEvents() {
     updateChartModeToggle();
     renderChart();
   });
+
+  elements.resetForecastToggle.addEventListener("click", () => {
+    state.resetForecast = !state.resetForecast;
+    writeCookie(RESET_FORECAST_COOKIE, state.resetForecast ? "1" : "0");
+    updateResetForecastToggle();
+    renderChart();
+  });
+
+  elements.resetForecastDecrease.addEventListener("click", () => adjustResetForecastDays(-1));
+  elements.resetForecastIncrease.addEventListener("click", () => adjustResetForecastDays(1));
 
 
   elements.seriesLegend.addEventListener("click", (event) => {
@@ -1061,7 +1104,15 @@ function renderChart() {
     metric,
     xFor,
     yFor,
-    series: geometrySeries
+    series: geometrySeries,
+    forecasts: state.resetForecast
+      ? Object.fromEntries(
+          selectedTypes.map((usageType) => [
+            usageType,
+            buildResetForecasts(rawSeries[usageType], Date.now() / 1000, state.resetForecastDays)
+          ])
+        )
+      : {}
   };
 
   const gridLines = [];
@@ -1089,6 +1140,7 @@ function renderChart() {
   }
 
   const seriesMarkup = [];
+  const forecastMarkup = [];
   const noteMarkerMarkup = [];
   const totalRealPoints = Object.values(geometrySeries)
     .flat()
@@ -1100,6 +1152,16 @@ function renderChart() {
     if (!points.length) continue;
 
     const suffix = SERIES_META[usageType].cssSuffix;
+    if (state.resetForecast) {
+      forecastMarkup.push(createForecastMarkup(
+        state.chartGeometry.forecasts[usageType] || [],
+        suffix,
+        xFor,
+        yFor,
+        range,
+        padding.top + plotHeight
+      ));
+    }
     const path = state.smoothChart
       ? createSmoothResetPath(points, width - padding.right)
       : createStepResetPath(points, width - padding.right);
@@ -1139,6 +1201,7 @@ function renderChart() {
   elements.chart.innerHTML = `
     ${gridLines.join("")}
     ${timeLabels.join("")}
+    ${forecastMarkup.join("")}
     ${seriesMarkup.join("")}
     <line id="chart-hover-line" class="chart-hover-line" y1="${padding.top}" y2="${padding.top + plotHeight}" hidden></line>
     <g id="chart-hover-dots"></g>
@@ -1234,6 +1297,35 @@ function createSmoothResetPath(points, endX) {
   const last = points[points.length - 1];
   if (last.x < endX) parts.push(`L ${endX.toFixed(2)} ${last.y.toFixed(2)}`);
   return parts.join(" ");
+}
+
+function createForecastMarkup(forecasts, suffix, xFor, yFor, range, plotBottom) {
+  return forecasts.map((forecast) => {
+    const visibleStart = Math.max(range.start, forecast.startTimestamp);
+    const visibleEnd = Math.min(range.end, forecast.endTimestamp);
+    if (visibleEnd <= visibleStart) return "";
+
+    const valueAt = (timestamp) => forecast.startValue +
+      ((timestamp - forecast.startTimestamp) / forecast.durationSeconds) * forecast.increase;
+    const currentTimestamp = clamp(forecast.currentTimestamp, visibleStart, visibleEnd);
+    const startX = xFor(visibleStart);
+    const endX = xFor(visibleEnd);
+    const currentX = xFor(currentTimestamp);
+    const startY = yFor(valueAt(visibleStart));
+    const endY = yFor(valueAt(visibleEnd));
+    const currentY = yFor(valueAt(currentTimestamp));
+    const linePath = `M ${startX.toFixed(2)} ${startY.toFixed(2)} L ${endX.toFixed(2)} ${endY.toFixed(2)}`;
+    const progressPath = `M ${startX.toFixed(2)} ${plotBottom.toFixed(2)} L ${startX.toFixed(2)} ${startY.toFixed(2)} L ${currentX.toFixed(2)} ${currentY.toFixed(2)} L ${currentX.toFixed(2)} ${plotBottom.toFixed(2)} Z`;
+    const futurePath = `M ${currentX.toFixed(2)} ${plotBottom.toFixed(2)} L ${currentX.toFixed(2)} ${currentY.toFixed(2)} L ${endX.toFixed(2)} ${endY.toFixed(2)} L ${endX.toFixed(2)} ${plotBottom.toFixed(2)} Z`;
+
+    return `
+      <path class="chart-forecast-area chart-forecast-area-${suffix}" d="${progressPath}"></path>
+      ${currentTimestamp < visibleEnd
+        ? `<path class="chart-forecast-area chart-forecast-area-future chart-forecast-area-${suffix}" d="${futurePath}"></path>`
+        : ""}
+      <path class="chart-forecast-line chart-forecast-line-${suffix}" d="${linePath}"></path>
+    `;
+  }).join("");
 }
 
 function createMonotoneCurveSegment(points) {
@@ -1669,6 +1761,36 @@ function updateChartModeToggle() {
   if (elements.chartInfoTooltip) elements.chartInfoTooltip.textContent = description;
 }
 
+function updateResetForecastToggle() {
+  if (!elements.resetForecastToggle) return;
+  elements.resetForecastToggle.classList.toggle("active", state.resetForecast);
+  elements.resetForecastToggle.setAttribute("aria-pressed", String(state.resetForecast));
+  elements.resetForecastToggle.setAttribute(
+    "aria-label",
+    t(state.resetForecast ? "resetForecastOn" : "resetForecast")
+  );
+  elements.resetForecastStepper.hidden = !state.resetForecast;
+  elements.resetForecastDays.textContent = String(state.resetForecastDays);
+  elements.resetForecastDays.setAttribute("aria-label", `${t("resetForecastDays")}: ${state.resetForecastDays}`);
+  elements.resetForecastDecrease.setAttribute("aria-label", t("decreaseForecastDays"));
+  elements.resetForecastIncrease.setAttribute("aria-label", t("increaseForecastDays"));
+  elements.resetForecastDecrease.disabled = state.resetForecastDays <= RESET_FORECAST_MIN_DAYS;
+  elements.resetForecastIncrease.disabled = state.resetForecastDays >= RESET_FORECAST_MAX_DAYS;
+}
+
+function adjustResetForecastDays(delta) {
+  const nextDays = clamp(
+    state.resetForecastDays + delta,
+    RESET_FORECAST_MIN_DAYS,
+    RESET_FORECAST_MAX_DAYS
+  );
+  if (nextDays === state.resetForecastDays) return;
+  state.resetForecastDays = nextDays;
+  localStorage.setItem(RESET_FORECAST_DAYS_STORAGE_KEY, String(nextDays));
+  updateResetForecastToggle();
+  renderChart();
+}
+
 function setControlsDisabled(disabled) {
   elements.previousButton.disabled = disabled;
   elements.nextButton.disabled = disabled || state.page === 0;
@@ -1780,6 +1902,13 @@ function toLocalDateTimeInput(date) {
 
 function clamp(value, minimum, maximum) {
   return Math.min(maximum, Math.max(minimum, value));
+}
+
+function readResetForecastDays() {
+  const stored = Number.parseInt(localStorage.getItem(RESET_FORECAST_DAYS_STORAGE_KEY) || "", 10);
+  return Number.isFinite(stored)
+    ? clamp(stored, RESET_FORECAST_MIN_DAYS, RESET_FORECAST_MAX_DAYS)
+    : RESET_FORECAST_DEFAULT_DAYS;
 }
 
 function readCookie(name) {
