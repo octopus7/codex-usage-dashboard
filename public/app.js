@@ -4,6 +4,7 @@ import {
   RESET_FORECAST_MIN_DAYS,
   buildResetForecasts
 } from "./chart-projection.js";
+import { resolveResetForecastDays } from "./reset-forecast-state.js";
 
 const LANGUAGE_STORAGE_KEY = "codex-dashboard-language";
 const THEME_STORAGE_KEY = "codex-dashboard-theme";
@@ -134,6 +135,7 @@ const params = new URLSearchParams(location.search);
 const initialScale = SCALES[params.get("scale")] ? params.get("scale") : "1d";
 const initialPage = Math.max(0, Number.parseInt(params.get("page") || "0", 10) || 0);
 const initialMetric = METRICS[params.get("metric")] ? params.get("metric") : "percent";
+const initialResetForecast = readCookie(RESET_FORECAST_COOKIE) === "1";
 const initialVisibleTypes = new Set(
   (params.get("series") || "5h,week")
     .split(",")
@@ -151,8 +153,8 @@ const state = {
   metric: initialMetric,
   visibleTypes: initialVisibleTypes,
   smoothChart: readCookie(SMOOTH_CHART_COOKIE) === "1",
-  resetForecast: readCookie(RESET_FORECAST_COOKIE) === "1",
-  resetForecastDays: readResetForecastDays(),
+  resetForecast: initialResetForecast,
+  resetForecastDays: readResetForecastDays(initialResetForecast),
   loading: false,
   tableExpanded: false,
   tablePage: 0,
@@ -499,7 +501,21 @@ function bindEvents() {
 
   elements.resetForecastToggle.addEventListener("click", () => {
     state.resetForecast = !state.resetForecast;
+    state.resetForecastDays = resolveResetForecastDays(
+      state.resetForecast,
+      state.resetForecastDays,
+      {
+        defaultDays: RESET_FORECAST_DEFAULT_DAYS,
+        minDays: RESET_FORECAST_MIN_DAYS,
+        maxDays: RESET_FORECAST_MAX_DAYS
+      }
+    );
     writeCookie(RESET_FORECAST_COOKIE, state.resetForecast ? "1" : "0");
+    if (state.resetForecast) {
+      localStorage.setItem(RESET_FORECAST_DAYS_STORAGE_KEY, String(state.resetForecastDays));
+    } else {
+      localStorage.removeItem(RESET_FORECAST_DAYS_STORAGE_KEY);
+    }
     updateResetForecastToggle();
     renderChart();
   });
@@ -1916,7 +1932,8 @@ function clamp(value, minimum, maximum) {
   return Math.min(maximum, Math.max(minimum, value));
 }
 
-function readResetForecastDays() {
+function readResetForecastDays(enabled = true) {
+  if (!enabled) return RESET_FORECAST_DEFAULT_DAYS;
   const stored = Number.parseInt(localStorage.getItem(RESET_FORECAST_DAYS_STORAGE_KEY) || "", 10);
   return Number.isFinite(stored)
     ? clamp(stored, RESET_FORECAST_MIN_DAYS, RESET_FORECAST_MAX_DAYS)
