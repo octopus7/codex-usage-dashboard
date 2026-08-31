@@ -1206,8 +1206,13 @@ function renderChart() {
       const isTiboReset = isTiboResetNote(point.row);
       const dotRadius = usageType === "5h" ? 1.5 : 3.5;
       const markerRadius = (usageType === "5h" ? 8 : 10.5) * (isTiboReset ? 0.5 : 1);
-      const markerY = point.y - dotRadius - markerRadius - 6;
-      const stemEndY = point.y - markerY - dotRadius;
+      const markerY = isTiboReset
+        ? point.y + dotRadius + markerRadius + 6
+        : point.y - dotRadius - markerRadius - 6;
+      const stemStartY = isTiboReset ? -markerRadius : markerRadius;
+      const stemEndY = isTiboReset
+        ? point.y - markerY + dotRadius
+        : point.y - markerY - dotRadius;
       const iconScale = markerRadius / 10;
       const markerContent = isTiboReset
         ? `<text class="chart-note-marker-tibo-text" x="0" y="0" text-anchor="middle" dominant-baseline="central" transform="scale(0.8)">T</text>`
@@ -1218,7 +1223,7 @@ function renderChart() {
           data-note-marker-id="${point.row.id}" data-note-x="${point.x}" data-note-y="${markerY}"
           data-note-radius="${markerRadius}" data-note-usage-type="${escapeHtml(usageType)}"
           data-note-recorded-at="${point.actualRecordedAt}" data-note="${escapeHtml(point.row.note)}">
-          <line class="chart-note-marker-stem" x1="0" y1="${markerRadius}" x2="0" y2="${stemEndY}"></line>
+          <line class="chart-note-marker-stem" x1="0" y1="${stemStartY}" x2="0" y2="${stemEndY}"></line>
           <circle class="chart-note-marker-bg" cx="0" cy="0" r="${markerRadius}"></circle>
           ${markerContent}
         </g>
