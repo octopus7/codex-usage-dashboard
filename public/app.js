@@ -2,7 +2,8 @@ import {
   RESET_FORECAST_DEFAULT_DAYS,
   RESET_FORECAST_MAX_DAYS,
   RESET_FORECAST_MIN_DAYS,
-  buildResetForecasts
+  buildResetForecasts,
+  isTiboResetNote
 } from "./chart-projection.js";
 import { resolveResetForecastDays } from "./reset-forecast-state.js";
 
@@ -1202,20 +1203,24 @@ function renderChart() {
     }
 
     for (const point of points.filter((candidate) => !candidate.synthetic && candidate.row?.note)) {
+      const isTiboReset = isTiboResetNote(point.row);
       const dotRadius = usageType === "5h" ? 1.5 : 3.5;
-      const markerRadius = usageType === "5h" ? 8 : 10.5;
+      const markerRadius = (usageType === "5h" ? 8 : 10.5) * (isTiboReset ? 0.5 : 1);
       const markerY = point.y - dotRadius - markerRadius - 6;
       const stemEndY = point.y - markerY - dotRadius;
       const iconScale = markerRadius / 10;
+      const markerContent = isTiboReset
+        ? `<text class="chart-note-marker-tibo-text" x="0" y="0" text-anchor="middle" dominant-baseline="central">T</text>`
+        : `<path class="chart-note-marker-icon" transform="scale(${iconScale})" d="M-4-4h8v6h-4.5L-3 4.5V2h-1z"></path>`;
       noteMarkerMarkup.push(`
-        <g class="chart-note-marker chart-note-marker-${suffix}" transform="translate(${point.x} ${markerY})"
+        <g class="chart-note-marker chart-note-marker-${suffix}${isTiboReset ? " chart-note-marker-tibo" : ""}" transform="translate(${point.x} ${markerY})"
           tabindex="0" role="button" aria-label="${escapeHtml(`${t("note")}: ${point.row.note}`)}"
           data-note-marker-id="${point.row.id}" data-note-x="${point.x}" data-note-y="${markerY}"
           data-note-radius="${markerRadius}" data-note-usage-type="${escapeHtml(usageType)}"
           data-note-recorded-at="${point.actualRecordedAt}" data-note="${escapeHtml(point.row.note)}">
           <line class="chart-note-marker-stem" x1="0" y1="${markerRadius}" x2="0" y2="${stemEndY}"></line>
           <circle class="chart-note-marker-bg" cx="0" cy="0" r="${markerRadius}"></circle>
-          <path class="chart-note-marker-icon" transform="scale(${iconScale})" d="M-4-4h8v6h-4.5L-3 4.5V2h-1z"></path>
+          ${markerContent}
         </g>
       `);
     }

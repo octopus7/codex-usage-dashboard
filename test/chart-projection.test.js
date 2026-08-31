@@ -6,7 +6,8 @@ import {
   RESET_FORECAST_INCREASE,
   forecastDurationSeconds,
   buildResetForecasts,
-  isForecastReset
+  isForecastReset,
+  isTiboResetNote
 } from "../public/chart-projection.js";
 
 const point = (timestamp, value, extra = {}) => ({ timestamp, value, synthetic: false, ...extra });
@@ -59,6 +60,28 @@ test("uses the selected arrival days up to the seven-day maximum", () => {
 test("caps the arrival days at seven", () => {
   assert.equal(forecastDurationSeconds(8), 7 * 24 * 60 * 60);
   assert.equal(forecastDurationSeconds(30), 7 * 24 * 60 * 60);
+});
+
+test("recognizes the exact 티보리셋 note", () => {
+  assert.equal(isTiboResetNote({ note: "티보리셋" }), true);
+  assert.equal(isTiboResetNote({ note: " 티보리셋 " }), true);
+  assert.equal(isTiboResetNote({ note: "리셋" }), false);
+});
+
+test("uses a later 티보리셋 as the latest reset", () => {
+  const forecasts = buildResetForecasts([
+    point(0, 80),
+    point(1_000, 1),
+    point(2_000, 15),
+    point(3_000, 42, { row: { note: "티보리셋" } }),
+    point(4_000, 50)
+  ], 4_000);
+
+  assert.equal(forecasts.length, 2);
+  assert.equal(forecasts[0].startTimestamp, 1_000);
+  assert.equal(forecasts[0].endTimestamp, 3_000);
+  assert.equal(forecasts[1].startTimestamp, 3_000);
+  assert.equal(forecasts[1].startValue, 42);
 });
 
 test("stops a prior forecast when a later reset begins", () => {

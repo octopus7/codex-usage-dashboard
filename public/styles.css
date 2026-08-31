@@ -1044,16 +1044,33 @@ select {
   pointer-events: none;
 }
 
+.chart-note-marker-tibo-text {
+  stroke: none;
+  font-size: 0.72rem;
+  font-weight: 900;
+  pointer-events: none;
+}
+
 .chart-note-marker-5h .chart-note-marker-stem,
 .chart-note-marker-5h .chart-note-marker-bg,
-.chart-note-marker-5h .chart-note-marker-icon {
+.chart-note-marker-5h .chart-note-marker-icon,
+.chart-note-marker-5h .chart-note-marker-tibo-text {
   stroke: var(--series-5h);
+}
+
+.chart-note-marker-5h .chart-note-marker-tibo-text {
+  fill: var(--series-5h);
 }
 
 .chart-note-marker-week .chart-note-marker-stem,
 .chart-note-marker-week .chart-note-marker-bg,
-.chart-note-marker-week .chart-note-marker-icon {
+.chart-note-marker-week .chart-note-marker-icon,
+.chart-note-marker-week .chart-note-marker-tibo-text {
   stroke: var(--series-week);
+}
+
+.chart-note-marker-week .chart-note-marker-tibo-text {
+  fill: var(--series-week);
 }
 
 .chart-note-marker:hover .chart-note-marker-bg,

@@ -4,6 +4,10 @@ export const RESET_FORECAST_MIN_DAYS = 1;
 export const RESET_FORECAST_MAX_DAYS = 7;
 export const RESET_FORECAST_INCREASE = 100;
 
+export function isTiboResetNote(row) {
+  return row?.note?.trim() === "티보리셋";
+}
+
 export function forecastDurationSeconds(days = RESET_FORECAST_DEFAULT_DAYS) {
   const normalizedDays = Math.max(
     RESET_FORECAST_MIN_DAYS,
@@ -29,7 +33,7 @@ export function buildResetForecasts(points, nowTimestamp, durationDays = RESET_F
     .filter((point) => point && Number.isFinite(point.timestamp) && Number.isFinite(point.value))
     .slice()
     .sort((left, right) => left.timestamp - right.timestamp);
-  const forecasts = [];
+  const resetCandidates = [];
 
   for (let index = 1; index < sortedPoints.length - 1; index += 1) {
     const previous = sortedPoints[index - 1];
@@ -37,11 +41,29 @@ export function buildResetForecasts(points, nowTimestamp, durationDays = RESET_F
     const next = sortedPoints[index + 1];
     if (!isForecastReset(previous, reset, next)) continue;
 
-    const nextReset = sortedPoints.slice(index + 1).find((point, offset) => {
-      const prior = sortedPoints[index + offset];
-      const following = sortedPoints[index + offset + 2];
-      return isForecastReset(prior, point, following);
+    resetCandidates.push({ index, reset });
+  }
+
+  const latestTiboReset = sortedPoints
+    .filter((point) => !point.synthetic && isTiboResetNote(point.row))
+    .at(-1);
+  const latestDetectedReset = resetCandidates.at(-1)?.reset;
+  if (
+    latestTiboReset &&
+    (!latestDetectedReset || latestTiboReset.timestamp > latestDetectedReset.timestamp)
+  ) {
+    resetCandidates.push({
+      index: sortedPoints.indexOf(latestTiboReset),
+      reset: latestTiboReset
     });
+  }
+
+  resetCandidates.sort((left, right) => left.reset.timestamp - right.reset.timestamp);
+  const forecasts = [];
+
+  for (let index = 0; index < resetCandidates.length; index += 1) {
+    const reset = resetCandidates[index].reset;
+    const nextReset = resetCandidates[index + 1]?.reset;
     const forecastEnd = Math.min(
       reset.timestamp + durationSeconds,
       nextReset?.timestamp ?? Number.POSITIVE_INFINITY
