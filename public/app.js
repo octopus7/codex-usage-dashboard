@@ -1210,7 +1210,7 @@ function renderChart() {
       const stemEndY = point.y - markerY - dotRadius;
       const iconScale = markerRadius / 10;
       const markerContent = isTiboReset
-        ? `<text class="chart-note-marker-tibo-text" x="0" y="0" text-anchor="middle" dominant-baseline="central">T</text>`
+        ? `<text class="chart-note-marker-tibo-text" x="0" y="0" text-anchor="middle" dominant-baseline="central" transform="scale(0.8)">T</text>`
         : `<path class="chart-note-marker-icon" transform="scale(${iconScale})" d="M-4-4h8v6h-4.5L-3 4.5V2h-1z"></path>`;
       noteMarkerMarkup.push(`
         <g class="chart-note-marker chart-note-marker-${suffix}${isTiboReset ? " chart-note-marker-tibo" : ""}" transform="translate(${point.x} ${markerY})"
