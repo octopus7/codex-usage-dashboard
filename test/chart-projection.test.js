@@ -84,6 +84,27 @@ test("uses a later 티보리셋 as the latest reset", () => {
   assert.equal(forecasts[1].startValue, 42);
 });
 
+test("starts separate forecasts at every 티보리셋", () => {
+  const forecasts = buildResetForecasts([
+    point(0, 80),
+    point(1_000, 0, { row: { note: "티보리셋" } }),
+    point(2_000, 0),
+    point(3_000, 8),
+    point(4_000, 0, { row: { note: "티보리셋" } }),
+    point(5_000, 0),
+    point(6_000, 1)
+  ], 6_000);
+
+  assert.equal(forecasts.length, 2);
+  assert.deepEqual(
+    forecasts.map(({ startTimestamp, endTimestamp, startValue }) => ({ startTimestamp, endTimestamp, startValue })),
+    [
+      { startTimestamp: 1_000, endTimestamp: 4_000, startValue: 0 },
+      { startTimestamp: 4_000, endTimestamp: 4_000 + forecastDurationSeconds(), startValue: 0 }
+    ]
+  );
+});
+
 test("stops a prior forecast when a later reset begins", () => {
   const forecasts = buildResetForecasts([
     point(0, 50),

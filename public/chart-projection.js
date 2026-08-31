@@ -44,17 +44,17 @@ export function buildResetForecasts(points, nowTimestamp, durationDays = RESET_F
     resetCandidates.push({ index, reset });
   }
 
-  const latestTiboReset = sortedPoints
-    .filter((point) => !point.synthetic && isTiboResetNote(point.row))
-    .at(-1);
-  const latestDetectedReset = resetCandidates.at(-1)?.reset;
-  if (
-    latestTiboReset &&
-    (!latestDetectedReset || latestTiboReset.timestamp > latestDetectedReset.timestamp)
-  ) {
+  const tiboResets = sortedPoints.filter(
+    (point) => !point.synthetic && isTiboResetNote(point.row)
+  );
+  for (const tiboReset of tiboResets) {
+    const alreadyDetected = resetCandidates.some(
+      ({ reset }) => reset.timestamp === tiboReset.timestamp
+    );
+    if (alreadyDetected) continue;
     resetCandidates.push({
-      index: sortedPoints.indexOf(latestTiboReset),
-      reset: latestTiboReset
+      index: sortedPoints.indexOf(tiboReset),
+      reset: tiboReset
     });
   }
 
