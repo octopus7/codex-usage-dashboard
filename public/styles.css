@@ -1046,8 +1046,11 @@ select {
 
 .chart-note-marker-tibo-text {
   stroke: none;
-  font-size: 0.72rem;
+  font-family: "Arial Black", Impact, "Noto Sans KR", sans-serif;
+  font-size: 0.8rem;
   font-weight: 900;
+  paint-order: stroke fill;
+  stroke-width: 0.35px;
   pointer-events: none;
 }
 
@@ -1060,6 +1063,7 @@ select {
 
 .chart-note-marker-5h .chart-note-marker-tibo-text {
   fill: var(--panel-strong);
+  stroke: var(--panel-strong);
 }
 
 .chart-note-marker-5h.chart-note-marker-tibo .chart-note-marker-bg {
@@ -1075,6 +1079,7 @@ select {
 
 .chart-note-marker-week .chart-note-marker-tibo-text {
   fill: var(--panel-strong);
+  stroke: var(--panel-strong);
 }
 
 .chart-note-marker-week.chart-note-marker-tibo .chart-note-marker-bg {
