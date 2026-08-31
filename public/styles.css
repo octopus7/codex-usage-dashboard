@@ -1059,6 +1059,10 @@ select {
 }
 
 .chart-note-marker-5h .chart-note-marker-tibo-text {
+  fill: var(--panel-strong);
+}
+
+.chart-note-marker-5h.chart-note-marker-tibo .chart-note-marker-bg {
   fill: var(--series-5h);
 }
 
@@ -1070,6 +1074,10 @@ select {
 }
 
 .chart-note-marker-week .chart-note-marker-tibo-text {
+  fill: var(--panel-strong);
+}
+
+.chart-note-marker-week.chart-note-marker-tibo .chart-note-marker-bg {
   fill: var(--series-week);
 }
 
