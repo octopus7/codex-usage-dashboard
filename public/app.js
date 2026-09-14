@@ -3,8 +3,10 @@ import {
   RESET_FORECAST_MAX_DAYS,
   RESET_FORECAST_MIN_DAYS,
   buildResetForecasts,
+  isResetNote,
   isTiboResetNote
 } from "./chart-projection.js";
+import { dateChangeGuideTimestamps } from "./chart-grid.js";
 import { resolveResetForecastDays } from "./reset-forecast-state.js";
 
 const LANGUAGE_STORAGE_KEY = "codex-dashboard-language";
@@ -1163,6 +1165,11 @@ function renderChart() {
     `);
   }
 
+  const dateChangeGuides = dateChangeGuideTimestamps(range, state.scale).map((timestamp) => {
+    const x = xFor(timestamp);
+    return `<line class="chart-grid chart-grid-date-change" x1="${x}" y1="${padding.top}" x2="${x}" y2="${padding.top + plotHeight}"></line>`;
+  });
+
   const seriesMarkup = [];
   const forecastMarkup = [];
   const noteMarkerMarkup = [];
@@ -1233,6 +1240,7 @@ function renderChart() {
 
   elements.chart.innerHTML = `
     ${gridLines.join("")}
+    ${dateChangeGuides.join("")}
     ${timeLabels.join("")}
     ${forecastMarkup.join("")}
     ${seriesMarkup.join("")}
@@ -1398,6 +1406,8 @@ function createMonotoneCurveSegment(points) {
 }
 
 function isUsageReset(previous, current) {
+  if (isResetNote(current?.row)) return true;
+
   const previousProgress = usageProgress(previous?.row);
   const currentProgress = usageProgress(current?.row);
   if (!Number.isFinite(previousProgress) || !Number.isFinite(currentProgress)) return false;

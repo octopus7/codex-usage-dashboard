@@ -4,6 +4,10 @@ export const RESET_FORECAST_MIN_DAYS = 1;
 export const RESET_FORECAST_MAX_DAYS = 7;
 export const RESET_FORECAST_INCREASE = 100;
 
+export function isResetNote(row) {
+  return typeof row?.note === "string" && row.note.includes("리셋");
+}
+
 export function isTiboResetNote(row) {
   return row?.note?.trim() === "티보리셋";
 }
@@ -44,17 +48,17 @@ export function buildResetForecasts(points, nowTimestamp, durationDays = RESET_F
     resetCandidates.push({ index, reset });
   }
 
-  const tiboResets = sortedPoints.filter(
-    (point) => !point.synthetic && isTiboResetNote(point.row)
+  const manualResets = sortedPoints.filter(
+    (point) => !point.synthetic && isResetNote(point.row)
   );
-  for (const tiboReset of tiboResets) {
+  for (const manualReset of manualResets) {
     const alreadyDetected = resetCandidates.some(
-      ({ reset }) => reset.timestamp === tiboReset.timestamp
+      ({ reset }) => reset.timestamp === manualReset.timestamp
     );
     if (alreadyDetected) continue;
     resetCandidates.push({
-      index: sortedPoints.indexOf(tiboReset),
-      reset: tiboReset
+      index: sortedPoints.indexOf(manualReset),
+      reset: manualReset
     });
   }
 

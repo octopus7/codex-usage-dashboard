@@ -957,6 +957,10 @@ select {
   stroke-width: 1;
 }
 
+.chart-grid-date-change {
+  stroke: rgba(154, 174, 218, 0.25);
+}
+
 .chart-axis-label {
   fill: #8392ae;
   font-size: 11px;

@@ -7,6 +7,7 @@ import {
   forecastDurationSeconds,
   buildResetForecasts,
   isForecastReset,
+  isResetNote,
   isTiboResetNote
 } from "../public/chart-projection.js";
 
@@ -66,6 +67,26 @@ test("recognizes the exact 티보리셋 note", () => {
   assert.equal(isTiboResetNote({ note: "티보리셋" }), true);
   assert.equal(isTiboResetNote({ note: " 티보리셋 " }), true);
   assert.equal(isTiboResetNote({ note: "리셋" }), false);
+});
+
+test("recognizes any note containing 리셋 as a forced reset", () => {
+  assert.equal(isResetNote({ note: "리셋" }), true);
+  assert.equal(isResetNote({ note: "수동 리셋 처리" }), true);
+  assert.equal(isResetNote({ note: "티보리셋" }), true);
+  assert.equal(isResetNote({ note: "리셋 아님" }), true);
+  assert.equal(isResetNote({ note: "정상 갱신" }), false);
+});
+
+test("starts a forecast at a note containing 리셋 even without a numeric reset pattern", () => {
+  const forecasts = buildResetForecasts([
+    point(0, 20),
+    point(1_000, 40, { row: { note: "수동 리셋 후 시작" } }),
+    point(2_000, 50)
+  ], 1_000);
+
+  assert.equal(forecasts.length, 1);
+  assert.equal(forecasts[0].startTimestamp, 1_000);
+  assert.equal(forecasts[0].startValue, 40);
 });
 
 test("uses a later 티보리셋 as the latest reset", () => {
