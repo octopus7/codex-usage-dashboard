@@ -119,6 +119,7 @@ const SCALES = {
   "12h": { label: "12시간", seconds: 12 * 60 * 60, bucket: 10 * 60 },
   "1d": { label: "1일", seconds: 24 * 60 * 60, bucket: 20 * 60 },
   "2d": { label: "2일", seconds: 2 * 24 * 60 * 60, bucket: 30 * 60 },
+  "4d": { label: "4일", seconds: 4 * 24 * 60 * 60, bucket: 60 * 60 },
   "1w": { label: "1주", seconds: 7 * 24 * 60 * 60, bucket: 2 * 60 * 60 },
   "2w": { label: "2주", seconds: 14 * 24 * 60 * 60, bucket: 4 * 60 * 60 },
   "4w": { label: "4주", seconds: 28 * 24 * 60 * 60, bucket: 8 * 60 * 60 }
@@ -312,7 +313,7 @@ function applyLanguage() {
   setText("#add-button", t("addUsage"));
   document.querySelector(".range-panel")?.setAttribute("aria-label", t("range"));
   document.querySelector("#scale-selector")?.setAttribute("aria-label", t("range"));
-  const scaleUnits = { "1h": t("hour"), "6h": t("hours"), "12h": t("hours"), "1d": t("day"), "2d": t("days"), "1w": t("week"), "2w": t("weeks"), "4w": t("weeks") };
+  const scaleUnits = { "1h": t("hour"), "6h": t("hours"), "12h": t("hours"), "1d": t("day"), "2d": t("days"), "4d": t("days"), "1w": t("week"), "2w": t("weeks"), "4w": t("weeks") };
   Object.entries(SCALES).forEach(([key, scale]) => {
     scale.label = `${key.replace(/[a-z]/g, "")} ${scaleUnits[key]}`;
     const button = document.querySelector(`[data-scale="${key}"]`);

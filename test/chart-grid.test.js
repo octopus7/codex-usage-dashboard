@@ -9,12 +9,13 @@ import {
 const utcSeconds = (year, month, day, hour = 0, minute = 0) =>
   Date.UTC(year, month - 1, day, hour, minute) / 1000;
 
-test("uses date-change guides for the two, seven, and fourteen day scales", () => {
-  assert.deepEqual([...DATE_CHANGE_GUIDE_SCALES].sort(), ["1w", "2d", "2w"]);
+test("uses date-change guides for the two, four, seven, and fourteen day scales", () => {
+  assert.deepEqual([...DATE_CHANGE_GUIDE_SCALES].sort(), ["1w", "2d", "2w", "4d"].sort());
   const range = { start: utcSeconds(2026, 1, 1, 16), end: utcSeconds(2026, 1, 3, 16) };
 
   const expected = [utcSeconds(2026, 1, 2, 15), utcSeconds(2026, 1, 3, 15)];
   assert.deepEqual(dateChangeGuideTimestamps(range, "2d"), expected);
+  assert.deepEqual(dateChangeGuideTimestamps(range, "4d"), expected);
   assert.deepEqual(dateChangeGuideTimestamps(range, "1w"), expected);
   assert.deepEqual(dateChangeGuideTimestamps(range, "2w"), expected);
 });
